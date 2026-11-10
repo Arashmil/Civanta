@@ -33,16 +33,16 @@ export const SLAConfigPage: React.FC = () => {
   return (
     <div className="max-w-5xl mx-auto space-y-4">
       {/* Header */}
-      <div className={`p-4 ${tokens.cardClass} bg-police-900 text-white space-y-2`}>
+      <div className={tokens.headerCardClass}>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="space-y-1">
-            <span className="text-[10px] font-mono uppercase tracking-wider text-slate-300">
+            <span className="text-[11px] font-mono uppercase tracking-wider text-amber-300 font-semibold">
               Module 5 & 6 • SLA Engine Rules
             </span>
             <h1 className="text-lg font-bold text-white tracking-tight">
               {t('slaDeadlinesConfig')}
             </h1>
-            <p className="text-xs text-slate-300">
+            <p className="text-xs text-slate-200 dark:text-slate-300">
               {t('slaConfigDesc')}
             </p>
           </div>

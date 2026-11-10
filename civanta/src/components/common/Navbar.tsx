@@ -1,8 +1,9 @@
 import React from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
+import { useTheme } from '../../context/ThemeContext';
 import { NotificationDropdown } from './NotificationDropdown';
-import { Shield, Globe, Users, Menu, Search } from 'lucide-react';
+import { Shield, Globe, Users, Menu, Search, Sun, Moon } from 'lucide-react';
 import { tokens } from '../../tokens';
 
 interface NavbarProps {
@@ -22,6 +23,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const { currentUser } = useAuth();
   const { language, toggleLanguage, t } = useLanguage();
+  const { isDark, toggleTheme } = useTheme();
 
   const getRoleLabel = () => {
     switch (currentUser?.role) {
@@ -119,10 +121,25 @@ export const Navbar: React.FC<NavbarProps> = ({
               <span className="font-kannada text-xs">{language === 'en' ? 'ಕನ್ನಡ' : 'English'}</span>
             </button>
 
+            {/* Dark / Light Mode Switcher */}
+            <button
+              onClick={toggleTheme}
+              className="p-1.5 rounded-[6px] border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition-colors cursor-pointer"
+              title={isDark ? (language === 'kn' ? 'ಲೈಟ್ ಮೋಡ್‌ಗೆ ಬದಲಿಸಿ' : 'Switch to Light Mode') : (language === 'kn' ? 'ಡಾರ್ಕ್ ಮೋಡ್‌ಗೆ ಬದಲಿಸಿ' : 'Switch to Dark Mode')}
+              aria-label="Toggle Dark/Light Mode"
+            >
+              {isDark ? (
+                <Sun size={15} className="text-amber-400" />
+              ) : (
+                <Moon size={15} className="text-police-700" />
+              )}
+            </button>
+
             {/* Notifications Dropdown */}
             <NotificationDropdown
               onSelectComplaint={onSelectComplaint}
               onViewAll={() => onNavigate && onNavigate('notifications')}
+              onNavigate={onNavigate}
             />
 
             {/* Role Switcher Pill */}

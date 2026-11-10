@@ -42,17 +42,17 @@ export const EscalationManagementPage: React.FC<EscalationManagementPageProps> =
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className={`p-4 ${tokens.cardClass} bg-police-900 text-white space-y-1`}>
+      <div className={tokens.headerCardClass}>
         <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-red-500" />
-          <span className="text-[10px] font-mono uppercase tracking-wider text-slate-300">
+          <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
+          <span className="text-[11px] font-mono uppercase tracking-wider text-amber-300 font-semibold">
             {t('supervisorEscalationManagement')}
           </span>
         </div>
         <h1 className="text-lg font-bold text-white tracking-tight">
           {t('slaEscalationsAndOverdue')}
         </h1>
-        <p className="text-xs text-slate-300 max-w-2xl leading-relaxed">
+        <p className="text-xs text-slate-200 dark:text-slate-300 max-w-2xl leading-relaxed">
           {t('escalationPageDesc')}
         </p>
       </div>

@@ -48,16 +48,16 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({
   return (
     <div className="space-y-4">
       {/* Administrative Header Banner */}
-      <div className={`p-4 ${tokens.cardClass} bg-police-900 text-white`}>
+      <div className={tokens.headerCardClass}>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1">
-            <span className="text-[10px] font-mono uppercase tracking-wider text-slate-300">
+            <span className="text-[11px] font-mono uppercase tracking-wider text-amber-300 font-semibold">
               {t('Citizen Grievance Portal')}
             </span>
             <h1 className="text-lg font-bold text-white tracking-tight">
               {t('My Registered Grievance Dossiers')}
             </h1>
-            <p className="text-xs text-slate-300 font-mono">
+            <p className="text-xs text-slate-200 dark:text-slate-300 font-mono">
               {t('Complainant:')} {currentUser?.name || 'Public Complainant'} • {currentUser?.email || 'citizen@demo.com'}
             </p>
           </div>

@@ -14,14 +14,14 @@ export const UserManagementPage: React.FC = () => {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className={`p-4 ${tokens.cardClass} bg-police-900 text-white space-y-1`}>
-        <span className="text-[10px] font-mono uppercase tracking-wider text-slate-300">
+      <div className={tokens.headerCardClass}>
+        <span className="text-[11px] font-mono uppercase tracking-wider text-amber-300 font-semibold">
           {t('administratorControls')}
         </span>
         <h1 className="text-lg font-bold text-white tracking-tight">
           {t('usersOfficersUnitsManagement')}
         </h1>
-        <p className="text-xs text-slate-300">
+        <p className="text-xs text-slate-200 dark:text-slate-300">
           {t('userManagementDesc')}
         </p>
       </div>

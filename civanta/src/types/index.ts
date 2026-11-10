@@ -225,6 +225,7 @@ export interface AppNotification {
   recipientId?: string; // specific user ID or 'all_officers' or 'supervisors'
   recipientRole?: UserRole;
   complaintId?: string;
+  category?: ComplaintCategory | string;
   title: string;
   message: string;
   messageKannada?: string;

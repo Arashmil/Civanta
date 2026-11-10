@@ -111,14 +111,14 @@ export const TrackComplaintPage: React.FC<TrackComplaintPageProps> = ({
   return (
     <div className="max-w-4xl mx-auto space-y-4">
       {/* Header */}
-      <div className={`p-4 ${tokens.cardClass} bg-police-900 text-white space-y-2`}>
-        <span className="text-[10px] font-mono uppercase tracking-wider text-slate-300">
+      <div className={tokens.headerCardClass}>
+        <span className="text-[11px] font-mono uppercase tracking-wider text-amber-300 font-semibold">
           Module 8 • Public Accountability Tracker
         </span>
         <h1 className="text-lg font-bold text-white tracking-tight">
           {t('Track Official Grievance Status')}
         </h1>
-        <p className="text-xs text-slate-300">
+        <p className="text-xs text-slate-200 dark:text-slate-300">
           {t('Enter Complaint ID (e.g., KA-CYB-2026-0001)')}
         </p>
 
