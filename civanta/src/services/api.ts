@@ -1,8 +1,9 @@
 /**
  * Centralized API client for CIVANTA Full-Stack FastAPI backend.
  */
+import { fallbackChatService } from './fallbackChatService';
 
-const API_BASE = '/api';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
 
 export function getAuthToken(): string | null {
   return localStorage.getItem('civanta_auth_token');
@@ -315,9 +316,14 @@ export const api = {
 
   // --- CHATBOT ---
   async sendChatMessage(message: string, history: Array<{ role: string; content: string }> = [], language: 'en' | 'kn' = 'en') {
-    return request<{ reply: string; complaint_found?: any; disclaimer: string }>('/chat', {
-      method: 'POST',
-      body: JSON.stringify({ message, history, language }),
-    });
+    try {
+      return await request<{ reply: string; complaint_found?: any; disclaimer: string }>('/chat', {
+        method: 'POST',
+        body: JSON.stringify({ message, history, language }),
+      });
+    } catch (err) {
+      console.warn('Backend /chat unreachable, routing via fallback police desk service:', err);
+      return fallbackChatService.respond(message, history, language);
+    }
   }
 };
