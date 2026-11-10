@@ -1,0 +1,139 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-primary: #14213D;
+  --color-primary-hover: #1e2e50;
+  --color-primary-subtle: #e8ecf4;
+  --color-primary-text: #ffffff;
+  
+  --color-surface-bg: #f8fafc;
+  --color-surface-card: #ffffff;
+  --color-surface-subtle: #f1f5f9;
+  --color-surface-muted: #e2e8f0;
+  
+  --color-border: #e2e8f0;
+  --color-border-subtle: #cbd5e1;
+  --color-border-strong: #94a3b8;
+  
+  --color-text-main: #0f172a;
+  --color-text-secondary: #475569;
+  --color-text-muted: #64748b;
+  
+  --color-amber: #D97706;
+  --color-amber-bg: #fffbeb;
+  --color-amber-border: #fde68a;
+  --color-amber-text: #92400e;
+  
+  --color-red: #B91C1C;
+  --color-red-bg: #fef2f2;
+  --color-red-border: #fecaca;
+  --color-red-text: #991b1b;
+  
+  --color-green: #15803D;
+  --color-green-bg: #f0fdf4;
+  --color-green-border: #bbf7d0;
+  --color-green-text: #166534;
+  
+  --radius: 6px;
+}
+
+.dark {
+  --color-primary: #14213D;
+  --color-primary-hover: #1e2e50;
+  --color-primary-subtle: #192742;
+  --color-primary-text: #f8fafc;
+  
+  --color-surface-bg: #090d16;
+  --color-surface-card: #0f172a;
+  --color-surface-subtle: #1e293b;
+  --color-surface-muted: #334155;
+  
+  --color-border: #1e293b;
+  --color-border-subtle: #334155;
+  --color-border-strong: #475569;
+  
+  --color-text-main: #f8fafc;
+  --color-text-secondary: #cbd5e1;
+  --color-text-muted: #94a3b8;
+  
+  --color-amber: #D97706;
+  --color-amber-bg: #451a03;
+  --color-amber-border: #78350f;
+  --color-amber-text: #fcd34d;
+  
+  --color-red: #B91C1C;
+  --color-red-bg: #450a0a;
+  --color-red-border: #7f1d1d;
+  --color-red-text: #fca5a5;
+  
+  --color-green: #15803D;
+  --color-green-bg: #052e16;
+  --color-green-border: #14532d;
+  --color-green-text: #86efac;
+}
+
+@layer base {
+  html {
+    font-size: 19px; /* Scaled up by ~20% base to make the entire UI highly readable */
+    font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    scroll-behavior: smooth;
+    color: var(--color-text-main);
+    background-color: var(--color-surface-bg);
+  }
+
+  body {
+    @apply bg-slate-50 text-slate-900 dark:bg-[#090d16] dark:text-slate-100;
+    font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    -webkit-font-smoothing: antialiased;
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+
+  code, pre, .font-mono {
+    font-family: 'IBM Plex Mono', monospace;
+  }
+}
+
+/* Kannada font support class */
+.font-kannada {
+  font-family: 'Noto Sans Kannada', sans-serif;
+}
+
+/* Administrative dense scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
+}
+
+/* Administrative 1px red alert border - no heavy shadows */
+.overdue-alert {
+  border: 1px solid #B91C1C;
+  background-color: #fef2f2;
+}
+.dark .overdue-alert {
+  border: 1px solid #7f1d1d;
+  background-color: #450a0a;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: white !important;
+    color: black !important;
+  }
+}
