@@ -105,7 +105,13 @@ async function callGeminiClientSide(
   history: Array<{ role: string; content: string }>,
   isKn: boolean
 ): Promise<string | null> {
-  const models = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-2.0-flash'];
+  const models = [
+    'gemini-3.5-flash-lite',
+    'gemini-3.5-flash',
+    'gemini-3.8-flash',
+    'gemini-2.5-flash',
+    'gemini-1.5-flash'
+  ];
   const contents = history.slice(-6).map(h => ({
     role: h.role === 'assistant' ? 'model' : 'user',
     parts: [{ text: h.content }]
