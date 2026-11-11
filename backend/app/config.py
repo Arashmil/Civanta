@@ -22,9 +22,21 @@ UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".pdf", ".txt", ".doc", ".docx"}
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
 
-# System categories (Exactly 5)
+# System categories (Comprehensive Statutory & Specialised Police Wings)
 CATEGORIES = [
     "Cybercrime",
+    "Financial Fraud & Scams",
+    "Women & Child Safety",
+    "Theft & Burglary",
+    "Lost & Found Property",
+    "Traffic & Road Safety",
+    "Assault & Violent Crimes",
+    "Narcotics & Illegal Substances",
+    "Missing Persons & Runaways",
+    "Property & Land Disputes",
+    "Public Nuisance & Civic Grievances",
+    "Corruption & Police Misconduct",
+    # Legacy aliases for backward compatibility
     "Financial Fraud",
     "Lost Property",
     "Traffic & Public Safety",

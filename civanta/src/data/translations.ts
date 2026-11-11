@@ -130,21 +130,117 @@ export const UI_TRANSLATIONS: TranslationDictionary = {
     "en": "Cybercrime",
     "kn": "ಸೈಬರ್ ಅಪರಾಧ"
   },
+  "Financial Fraud & Scams": {
+    "en": "Financial Fraud & Scams",
+    "kn": "ಹಣಕಾಸು ವಂಚನೆ ಮತ್ತು ಸ್ಕ್ಯಾಮ್"
+  },
   "Financial Fraud": {
     "en": "Financial Fraud",
     "kn": "ಹಣಕಾಸು ವಂಚನೆ"
+  },
+  "Women & Child Safety": {
+    "en": "Women & Child Safety",
+    "kn": "ಮಹಿಳೆಯರು ಮತ್ತು ಮಕ್ಕಳ ಸುರಕ್ಷತೆ"
+  },
+  "Theft & Burglary": {
+    "en": "Theft & Burglary",
+    "kn": "ಕಳ್ಳತನ ಮತ್ತು ದರೋಡೆ"
+  },
+  "Lost & Found Property": {
+    "en": "Lost & Found Property",
+    "kn": "ಕಳೆದುಹೋದ ವಸ್ತುಗಳು"
   },
   "Lost Property": {
     "en": "Lost Property",
     "kn": "ಕಳೆದುಹೋದ ವಸ್ತುಗಳು"
   },
+  "Traffic & Road Safety": {
+    "en": "Traffic & Road Safety",
+    "kn": "ಸಂಚಾರ ಮತ್ತು ರಸ್ತೆ ಸುರಕ್ಷತೆ"
+  },
   "Traffic & Public Safety": {
     "en": "Traffic & Public Safety",
     "kn": "ಸಂಚಾರ ಮತ್ತು ಸಾರ್ವಜನಿಕ ಸುರಕ್ಷತೆ"
   },
+  "Assault & Violent Crimes": {
+    "en": "Assault & Violent Crimes",
+    "kn": "ಹಲ್ಲೆ ಮತ್ತು ಹಿಂಸಾತ್ಮಕ ಅಪರಾಧ"
+  },
+  "Narcotics & Illegal Substances": {
+    "en": "Narcotics & Illegal Substances",
+    "kn": "ಮಾದಕ ದ್ರವ್ಯ ಮತ್ತು ನಿಷೇಧಿತ ವಸ್ತುಗಳು"
+  },
+  "Missing Persons & Runaways": {
+    "en": "Missing Persons & Runaways",
+    "kn": "ನಾಪತ್ತೆಯಾದ ವ್ಯಕ್ತಿಗಳು"
+  },
+  "Property & Land Disputes": {
+    "en": "Property & Land Disputes",
+    "kn": "ಆಸ್ತಿ ಮತ್ತು ಭೂ ವಿವಾದಗಳು"
+  },
+  "Public Nuisance & Civic Grievances": {
+    "en": "Public Nuisance & Civic Grievances",
+    "kn": "ಸಾರ್ವಜನಿಕ ಉಪದ್ರವ ಮತ್ತು ನಾಗರಿಕ ದೂರುಗಳು"
+  },
+  "Corruption & Police Misconduct": {
+    "en": "Corruption & Police Misconduct",
+    "kn": "ಭ್ರಷ್ಟಾಚಾರ ಮತ್ತು ಅಧಿಕಾರಿ ದುರ್ವರ್ತನೆ"
+  },
   "Complaints Involving Individuals": {
     "en": "Complaints Involving Individuals",
     "kn": "ವ್ಯಕ್ತಿಗಳ ನಡುವಿನ ದೂರುಗಳು"
+  },
+  "detectLocation": {
+    "en": "Detect My Current GPS Location",
+    "kn": "ಪ್ರಸ್ತುತ ಜಿಪಿಎಸ್ ಸ್ಥಳ ಪತ್ತೆ ಮಾಡಿ"
+  },
+  "locationTracking": {
+    "en": "Incident Location & GPS Tracking",
+    "kn": "ಘಟನಾ ಸ್ಥಳ ಮತ್ತು ಜಿಪಿಎಸ್ ಟ್ರ್ಯಾಕಿಂಗ್"
+  },
+  "fieldDispatchRadar": {
+    "en": "Incident Location & Field Dispatch Radar",
+    "kn": "ಘಟನಾ ಸ್ಥಳ ಮತ್ತು ಫೀಲ್ಡ್ ಡಿಸ್ಪ್ಯಾಚ್ ರಾಡಾರ್"
+  },
+  "nearestStation": {
+    "en": "Nearest Police Station",
+    "kn": "ಹತ್ತಿರದ ಪೊಲೀಸ್ ಠಾಣೆ"
+  },
+  "gpsTagged": {
+    "en": "GPS Tagged",
+    "kn": "ಜಿಪಿಎಸ್ ದಾಖಲಿಸಲಾಗಿದೆ"
+  },
+  "stationAlerted": {
+    "en": "Station Alerted",
+    "kn": "ಠಾಣೆಗೆ ಮಾಹಿತಿ ನೀಡಲಾಗಿದೆ"
+  },
+  "patrolDispatched": {
+    "en": "Patrol Dispatched",
+    "kn": "ಗಸ್ತು ವಾಹನ ರವಾನಿಸಲಾಗಿದೆ"
+  },
+  "officerOnSite": {
+    "en": "Officer On-Site",
+    "kn": "ಸ್ಥಳದಲ್ಲಿ ತನಿಖಾಧಿಕಾರಿ"
+  },
+  "fieldVerified": {
+    "en": "Field Verified",
+    "kn": "ಸ್ಥಳ ಪರಿಶೀಲನೆ ಪೂರ್ಣಗೊಂಡಿದೆ"
+  },
+  "openInGoogleMaps": {
+    "en": "Open in Google Maps",
+    "kn": "ಗೂಗಲ್ ಮ್ಯಾಪ್ಸ್‌ನಲ್ಲಿ ವೀಕ್ಷಿಸಿ"
+  },
+  "openInOSM": {
+    "en": "Open in OpenStreetMap",
+    "kn": "ಓಪನ್‌ಸ್ಟ್ರೀಟ್‌ಮ್ಯಾಪ್‌ನಲ್ಲಿ ವೀಕ್ಷಿಸಿ"
+  },
+  "copyCoordinates": {
+    "en": "Copy Coordinates",
+    "kn": "ನಿರ್ದೇಶಾಂಕಗಳನ್ನು ನಕಲಿಸಿ"
+  },
+  "coordinatesCopied": {
+    "en": "Coordinates Copied!",
+    "kn": "ನಿರ್ದೇಶಾಂಕಗಳನ್ನು ನಕಲಿಸಲಾಗಿದೆ!"
   },
   "Low": {
     "en": "Low Priority",

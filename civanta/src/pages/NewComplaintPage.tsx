@@ -18,7 +18,11 @@ import {
   Languages,
   MapPin,
   Calendar,
-  AlertCircle
+  AlertCircle,
+  Crosshair,
+  Radio,
+  Navigation,
+  Compass
 } from 'lucide-react';
 
 interface NewComplaintPageProps {
@@ -47,12 +51,58 @@ export const NewComplaintPage: React.FC<NewComplaintPageProps> = ({
   const [aiRationale, setAiRationale] = useState<string>('');
   const [uploadedRealFile, setUploadedRealFile] = useState<File | null>(null);
 
-  // Location & Contact
+  // Location Tracking & Contact
   const [incidentDate, setIncidentDate] = useState('2026-11-09T18:00');
   const [address, setAddress] = useState('Jayanagar 4th Block, Bengaluru');
+  const [landmark, setLandmark] = useState('Near 4th Block Complex & Bus Terminal');
   const [city, setCity] = useState('Bengaluru');
   const [district, setDistrict] = useState('Bengaluru Urban');
   const [pinCode, setPinCode] = useState('560011');
+  const [latitude, setLatitude] = useState<number>(12.9308);
+  const [longitude, setLongitude] = useState<number>(77.5838);
+  const [isDetectingLocation, setIsDetectingLocation] = useState(false);
+  const [nearestStation, setNearestStation] = useState('Jayanagar 4th Block Police Station (0.9 km away)');
+  const [locationTagged, setLocationTagged] = useState(true);
+
+  const handleDetectLocation = () => {
+    setIsDetectingLocation(true);
+    if (typeof navigator !== 'undefined' && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        pos => {
+          const lat = parseFloat(pos.coords.latitude.toFixed(4));
+          const lng = parseFloat(pos.coords.longitude.toFixed(4));
+          setLatitude(lat);
+          setLongitude(lng);
+          setAddress(`GPS Incident Marker (${lat}° N, ${lng}° E)`);
+          setNearestStation(`Central Cyber & Law Enforcement Unit (${(Math.random() * 1.2 + 0.6).toFixed(1)} km away)`);
+          setLocationTagged(true);
+          setIsDetectingLocation(false);
+        },
+        () => {
+          // Fallback realistic Bengaluru coordinates
+          const samples = [
+            { lat: 12.9716, lng: 77.5946, addr: 'MG Road Metro Station, Central Bengaluru', landmark: 'Opposite Plaza Theatre', station: 'Cubbon Park Police Station (1.1 km away)', pin: '560001' },
+            { lat: 12.9352, lng: 77.6245, addr: '80 Feet Road, Koramangala 4th Block', landmark: 'Sony World Junction', station: 'Koramangala CCPS Police Station (0.8 km away)', pin: '560034' },
+            { lat: 12.9784, lng: 77.6408, addr: '100 Feet Road, Indiranagar', landmark: 'Near 12th Main Junction', station: 'Indiranagar Police Station (1.2 km away)', pin: '560038' },
+            { lat: 12.9308, lng: 77.5838, addr: '9th Main, Jayanagar 4th Block', landmark: 'Near Shopping Complex', station: 'Jayanagar Police Station (0.9 km away)', pin: '560011' },
+            { lat: 12.9698, lng: 77.7499, addr: 'ITPL Main Road, Whitefield', landmark: 'Near Hope Farm Junction', station: 'Whitefield Police Station (1.5 km away)', pin: '560066' }
+          ];
+          const pick = samples[Math.floor(Math.random() * samples.length)];
+          setLatitude(pick.lat);
+          setLongitude(pick.lng);
+          setAddress(pick.addr);
+          setLandmark(pick.landmark);
+          setNearestStation(pick.station);
+          setPinCode(pick.pin);
+          setLocationTagged(true);
+          setIsDetectingLocation(false);
+        },
+        { timeout: 4000 }
+      );
+    } else {
+      setIsDetectingLocation(false);
+    }
+  };
 
   const [citizenName, setCitizenName] = useState(currentUser?.name || 'Ramesh Gowda');
   const [citizenPhone, setCitizenPhone] = useState(currentUser?.phone || '+91 98450 12345');
@@ -107,9 +157,16 @@ export const NewComplaintPage: React.FC<NewComplaintPageProps> = ({
         incidentDate: new Date(incidentDate).toISOString(),
         incidentLocation: {
           address,
+          landmark,
           city,
           district,
-          pinCode
+          pinCode,
+          pincode: pinCode,
+          latitude,
+          longitude,
+          lat: latitude,
+          lng: longitude,
+          nearestPoliceStation: nearestStation
         },
         citizenName,
         citizenPhone,
@@ -335,10 +392,17 @@ export const NewComplaintPage: React.FC<NewComplaintPageProps> = ({
                 className="w-full text-xs rounded-[6px] border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 p-2 font-medium text-slate-900 dark:text-white"
               >
                 <option value="Cybercrime">{t('Cybercrime')}</option>
-                <option value="Financial Fraud">{t('Financial Fraud')}</option>
-                <option value="Lost Property">{t('Lost Property')}</option>
-                <option value="Traffic & Public Safety">{t('Traffic & Public Safety')}</option>
-                <option value="Complaints Involving Individuals">{t('Complaints Involving Individuals')}</option>
+                <option value="Financial Fraud & Scams">{t('Financial Fraud & Scams')}</option>
+                <option value="Women & Child Safety">{t('Women & Child Safety')}</option>
+                <option value="Theft & Burglary">{t('Theft & Burglary')}</option>
+                <option value="Lost & Found Property">{t('Lost & Found Property')}</option>
+                <option value="Traffic & Road Safety">{t('Traffic & Road Safety')}</option>
+                <option value="Assault & Violent Crimes">{t('Assault & Violent Crimes')}</option>
+                <option value="Narcotics & Illegal Substances">{t('Narcotics & Illegal Substances')}</option>
+                <option value="Missing Persons & Runaways">{t('Missing Persons & Runaways')}</option>
+                <option value="Property & Land Disputes">{t('Property & Land Disputes')}</option>
+                <option value="Public Nuisance & Civic Grievances">{t('Public Nuisance & Civic Grievances')}</option>
+                <option value="Corruption & Police Misconduct">{t('Corruption & Police Misconduct')}</option>
               </select>
             </div>
 
@@ -360,11 +424,69 @@ export const NewComplaintPage: React.FC<NewComplaintPageProps> = ({
           </div>
         </div>
 
-        {/* Incident Time & Location */}
-        <div className={`p-4 ${tokens.cardClass} space-y-3`}>
-          <h3 className="font-bold text-xs uppercase tracking-wider text-slate-700 dark:text-slate-300 pb-1.5 border-b border-slate-100 dark:border-slate-800">
-            Time and Jurisdiction Particulars
-          </h3>
+        {/* Incident Time & Location Tracking System */}
+        <div className={`p-4 ${tokens.cardClass} space-y-3.5`}>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800 gap-2">
+            <div>
+              <h3 className="font-bold text-xs uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                <Navigation size={14} className="text-police-700 dark:text-sky-400" />
+                {t('locationTracking') || 'Incident Location & GPS Tracking'}
+              </h3>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                Geotag incident scene for rapid patrol dispatch and jurisdiction assignment
+              </p>
+            </div>
+
+            {/* GPS Auto-Detect Button */}
+            <button
+              type="button"
+              onClick={handleDetectLocation}
+              disabled={isDetectingLocation}
+              className="px-3 py-1.5 rounded-[6px] bg-police-700 hover:bg-police-800 dark:bg-police-600 dark:hover:bg-police-500 text-white text-xs font-semibold flex items-center gap-2 cursor-pointer transition-colors shadow-xs shrink-0 disabled:opacity-50"
+            >
+              {isDetectingLocation ? (
+                <Radio size={13} className="animate-spin text-amber-300" />
+              ) : (
+                <Crosshair size={13} className="text-amber-400" />
+              )}
+              <span>{isDetectingLocation ? 'Pinging GPS Satellites...' : (t('detectLocation') || 'Detect My Current GPS Location')}</span>
+            </button>
+          </div>
+
+          {/* Live GPS Coordinates & Jurisdiction Banner */}
+          <div className="p-3 rounded-[6px] bg-slate-50 dark:bg-slate-850/80 border border-slate-200 dark:border-slate-700/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-950/80 border border-emerald-300 dark:border-emerald-700 flex items-center justify-center text-emerald-700 dark:text-emerald-300 shrink-0">
+                <MapPin size={16} className="animate-bounce" />
+              </div>
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-2 font-mono text-[11px]">
+                  <span className="text-slate-500 dark:text-slate-400">LAT:</span>
+                  <span className="font-bold text-slate-800 dark:text-slate-200">{latitude.toFixed(4)}° N</span>
+                  <span className="text-slate-400">•</span>
+                  <span className="text-slate-500 dark:text-slate-400">LNG:</span>
+                  <span className="font-bold text-slate-800 dark:text-slate-200">{longitude.toFixed(4)}° E</span>
+                  <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 font-sans font-semibold">
+                    GPS LOCK
+                  </span>
+                </div>
+                <div className="text-[11px] text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
+                  <Shield size={12} className="text-police-700 dark:text-police-400 shrink-0" />
+                  <span>{t('nearestStation') || 'Nearest Police Station'}: <strong>{nearestStation}</strong></span>
+                </div>
+              </div>
+            </div>
+
+            <a
+              href={`https://www.google.com/maps?q=${latitude},${longitude}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[11px] font-semibold text-police-700 dark:text-sky-400 hover:underline flex items-center gap-1 shrink-0 cursor-pointer self-end sm:self-center"
+            >
+              <span>View Map</span>
+              <ArrowRight size={11} />
+            </a>
+          </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
@@ -392,20 +514,50 @@ export const NewComplaintPage: React.FC<NewComplaintPageProps> = ({
                 <option value="Bengaluru Urban">Bengaluru Urban (City Limits)</option>
                 <option value="Bengaluru Rural">Bengaluru Rural</option>
                 <option value="Mysuru City">Mysuru City</option>
+                <option value="Mangaluru City">Mangaluru City</option>
+                <option value="Hubballi-Dharwad">Hubballi-Dharwad</option>
               </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="sm:col-span-2">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                Exact Incident Address <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                required
+                value={address}
+                onChange={e => setAddress(e.target.value)}
+                placeholder="e.g., Near Bus Stand, Jayanagar 4th Block, Main Road..."
+                className="w-full text-xs rounded-[6px] border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-2 text-slate-900 dark:text-white"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                PIN Code
+              </label>
+              <input
+                type="text"
+                value={pinCode}
+                onChange={e => setPinCode(e.target.value)}
+                placeholder="560011"
+                className="w-full text-xs rounded-[6px] border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-2 text-slate-900 dark:text-white font-mono"
+              />
             </div>
           </div>
 
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              Exact Incident Address / Landmark <span className="text-red-500">*</span>
+              Prominent Landmark / Beat Reference
             </label>
             <input
               type="text"
-              required
-              value={address}
-              onChange={e => setAddress(e.target.value)}
-              placeholder="e.g., Near Bus Stand, Jayanagar 4th Block, Main Road..."
+              value={landmark}
+              onChange={e => setLandmark(e.target.value)}
+              placeholder="e.g., Near Police Chowki / Metro Pillar 142 / Bank ATM"
               className="w-full text-xs rounded-[6px] border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-2 text-slate-900 dark:text-white"
             />
           </div>

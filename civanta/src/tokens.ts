@@ -82,9 +82,9 @@ export const tokens = {
   radiusClass: 'rounded-[6px]',
 
   // Common card and header classes
-  cardClass: 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[6px]',
+  cardClass: 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[6px] shadow-xs',
   headerBarClass: 'bg-[#14213D] text-white border-b border-slate-800 rounded-[6px]',
-  headerCardClass: 'p-4 rounded-[6px] bg-[#14213D] dark:bg-[#0c1424] text-white border border-slate-700 dark:border-slate-800 shadow-sm space-y-2',
+  headerCardClass: 'p-4 rounded-[6px] bg-[#14213D] dark:bg-slate-900 text-white border border-slate-700 dark:border-slate-800 shadow-sm space-y-2',
 
   // 8px base spacing grid
   spacing: {
@@ -98,16 +98,16 @@ export const tokens = {
   // Administrative component class tokens (1px borders, no heavy shadows, no gradients)
   components: {
     // Dense card container
-    card: 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[6px]',
+    card: 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[6px] shadow-xs',
     
     // Header block
     headerBar: 'bg-[#14213D] text-white border-b border-slate-800 rounded-[6px]',
 
     // Primary button (Navy)
-    buttonPrimary: 'px-3.5 py-2 rounded-[6px] bg-[#14213D] hover:bg-[#1e2e50] text-white text-sm font-semibold border border-slate-700 transition-colors cursor-pointer disabled:opacity-50',
+    buttonPrimary: 'px-3.5 py-2 rounded-[6px] bg-[#14213D] hover:bg-[#1e2e50] dark:bg-police-600 dark:hover:bg-police-500 text-white text-sm font-semibold border border-slate-700 transition-colors cursor-pointer disabled:opacity-50',
 
     // Secondary button
-    buttonSecondary: 'px-3.5 py-2 rounded-[6px] border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-sm font-medium transition-colors cursor-pointer disabled:opacity-50',
+    buttonSecondary: 'px-3.5 py-2 rounded-[6px] border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-medium transition-colors cursor-pointer disabled:opacity-50',
 
     // Danger button (Red - Overdue / Escalations / Tamper tests)
     buttonDanger: 'px-3.5 py-2 rounded-[6px] bg-[#B91C1C] hover:bg-red-800 text-white text-sm font-semibold border border-red-900 transition-colors cursor-pointer disabled:opacity-50',
@@ -116,38 +116,38 @@ export const tokens = {
     buttonSuccess: 'px-3.5 py-2 rounded-[6px] bg-[#15803D] hover:bg-green-800 text-white text-sm font-semibold border border-green-900 transition-colors cursor-pointer disabled:opacity-50',
 
     // Form input / select
-    input: 'w-full px-3 py-2 rounded-[6px] border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:border-[#14213D] dark:focus:border-slate-500',
+    input: 'w-full px-3 py-2 rounded-[6px] border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:border-police-600 dark:focus:border-police-400',
 
     // Compact table container
-    tableContainer: 'border-2 border-slate-300 dark:border-slate-700 rounded-[6px] overflow-hidden bg-white dark:bg-slate-900',
-    tableHeaderRow: 'bg-slate-100 dark:bg-slate-800 border-b-2 border-slate-300 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider sticky top-0 z-10',
-    tableRow: 'hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors border-b border-slate-200 dark:border-slate-800 text-sm cursor-pointer',
+    tableContainer: 'border border-slate-200 dark:border-slate-800 rounded-[6px] overflow-hidden bg-white dark:bg-slate-900',
+    tableHeaderRow: 'bg-slate-100 dark:bg-slate-800/90 border-b border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider sticky top-0 z-10',
+    tableRow: 'hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors border-b border-slate-200 dark:border-slate-800 text-sm cursor-pointer',
 
     // Status Chips
     statusChip: (status: string) => {
       const s = status.toLowerCase().replace(/\s+/g, '_');
       if (s === 'overdue' || s === 'escalated') {
-        return 'inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[4px] text-xs font-mono font-bold bg-[#fef2f2] dark:bg-[#450a0a] text-[#991b1b] dark:text-[#fca5a5] border border-[#fecaca] dark:border-[#7f1d1d]';
+        return 'inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[4px] text-xs font-mono font-bold bg-[#fef2f2] dark:bg-red-950/70 text-[#991b1b] dark:text-red-300 border border-[#fecaca] dark:border-red-800';
       }
       if (s === 'resolved' || s === 'closed') {
-        return 'inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[4px] text-xs font-mono font-semibold bg-[#f0fdf4] dark:bg-[#052e16] text-[#166534] dark:text-[#86efac] border border-[#bbf7d0] dark:border-[#14532d]';
+        return 'inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[4px] text-xs font-mono font-semibold bg-[#f0fdf4] dark:bg-emerald-950/70 text-[#166534] dark:text-emerald-300 border border-[#bbf7d0] dark:border-emerald-800';
       }
       if (s === 'in_progress' || s === 'pending') {
-        return 'inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[4px] text-xs font-mono font-semibold bg-[#fffbeb] dark:bg-[#451a03] text-[#92400e] dark:text-[#fcd34d] border border-[#fde68a] dark:border-[#78350f]';
+        return 'inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[4px] text-xs font-mono font-semibold bg-[#fffbeb] dark:bg-amber-950/70 text-[#92400e] dark:text-amber-300 border border-[#fde68a] dark:border-amber-800';
       }
-      return 'inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[4px] text-xs font-mono font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700';
+      return 'inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[4px] text-xs font-mono font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700';
     },
 
     // Priority Chips
     priorityChip: (priority: string) => {
       const p = priority.toLowerCase();
       if (p === 'urgent') {
-        return 'inline-flex items-center px-2 py-0.5 rounded-[4px] text-xs font-mono font-bold bg-[#fef2f2] dark:bg-[#450a0a] text-[#991b1b] dark:text-[#fca5a5] border border-[#fecaca] dark:border-[#7f1d1d]';
+        return 'inline-flex items-center px-2 py-0.5 rounded-[4px] text-xs font-mono font-bold bg-[#fef2f2] dark:bg-red-950/70 text-[#991b1b] dark:text-red-300 border border-[#fecaca] dark:border-red-800';
       }
       if (p === 'high') {
-        return 'inline-flex items-center px-2 py-0.5 rounded-[4px] text-xs font-mono font-semibold bg-[#fffbeb] dark:bg-[#451a03] text-[#92400e] dark:text-[#fcd34d] border border-[#fde68a] dark:border-[#78350f]';
+        return 'inline-flex items-center px-2 py-0.5 rounded-[4px] text-xs font-mono font-semibold bg-[#fffbeb] dark:bg-amber-950/70 text-[#92400e] dark:text-amber-300 border border-[#fde68a] dark:border-amber-800';
       }
-      return 'inline-flex items-center px-2 py-0.5 rounded-[4px] text-xs font-mono text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700';
+      return 'inline-flex items-center px-2 py-0.5 rounded-[4px] text-xs font-mono text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700';
     }
   }
 };

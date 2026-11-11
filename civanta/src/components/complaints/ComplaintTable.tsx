@@ -87,7 +87,14 @@ export const ComplaintTable: React.FC<ComplaintTableProps> = ({
     'Financial Fraud',
     'Lost Property',
     'Traffic & Public Safety',
-    'Complaints Involving Individuals'
+    'Complaints Involving Individuals',
+    'Women & Child Safety',
+    'Theft & Burglary',
+    'Narcotics & Illegal Substances',
+    'Missing Persons & Runaways',
+    'Public Nuisance & Civic Grievances',
+    'Senior Citizen Assistance',
+    'Organized Crime & Extortion'
   ];
 
   return (

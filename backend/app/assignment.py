@@ -8,9 +8,20 @@ from app.audit import log_action
 # Category to Police Unit mapping
 CATEGORY_UNIT_MAP = {
     "Cybercrime": "Cyber Crime Division",
+    "Financial Fraud & Scams": "Economic Offences Wing",
     "Financial Fraud": "Economic Offences Wing",
+    "Women & Child Safety": "Women Protection & Special Crimes Wing",
+    "Theft & Burglary": "Crime Investigation Branch (CIB)",
+    "Lost & Found Property": "Citizen Services & Lost Property Desk",
     "Lost Property": "Citizen Services & Lost Property Desk",
+    "Traffic & Road Safety": "Traffic & Public Safety Division",
     "Traffic & Public Safety": "Traffic & Public Safety Division",
+    "Assault & Violent Crimes": "Law & Order Division",
+    "Narcotics & Illegal Substances": "Anti-Narcotics Wing (ANW)",
+    "Missing Persons & Runaways": "Anti-Kidnapping & Missing Persons Bureau",
+    "Property & Land Disputes": "Civil Disputes & Land Revenue Cell",
+    "Public Nuisance & Civic Grievances": "City Patrol & Civic Response Division",
+    "Corruption & Police Misconduct": "Vigilance & Anti-Corruption Bureau",
     "Complaints Involving Individuals": "Law & Order Division",
 }
 

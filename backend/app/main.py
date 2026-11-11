@@ -26,6 +26,8 @@ async def lifespan(app: FastAPI):
     # Startup sequence
     print("Initializing CIVANTA backend services...")
     Base.metadata.create_all(bind=engine)
+    from app.database import run_migrations
+    run_migrations()
     init_clock()
     seed_database()
     start_background_scheduler()

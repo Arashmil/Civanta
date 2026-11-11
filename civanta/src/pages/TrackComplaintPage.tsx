@@ -9,6 +9,7 @@ import { SLAProgressBar } from '../components/common/SLAProgressBar';
 import { SLACountdown } from '../components/common/SLACountdown';
 import { EscalationLadderStepper } from '../components/complaints/EscalationLadderStepper';
 import { ActionHistoryTimeline } from '../components/complaints/ActionHistoryTimeline';
+import { LocationTrackingRadar } from '../components/common/LocationTrackingRadar';
 import { tokens } from '../tokens';
 import { Search, Shield, ArrowRight, Clock, CheckCircle2, AlertCircle, Lock } from 'lucide-react';
 
@@ -63,8 +64,16 @@ export const TrackComplaintPage: React.FC<TrackComplaintPageProps> = ({
           incidentDate: publicTrackData.created_at,
           incidentLocation: {
             address: publicTrackData.assigned_area || 'Bengaluru Central',
-            city: 'Bengaluru',
-            district: 'Bengaluru Urban'
+            city: publicTrackData.city || 'Bengaluru',
+            district: publicTrackData.district || 'Bengaluru Urban',
+            landmark: publicTrackData.landmark || 'Jurisdictional Police Sector',
+            lat: publicTrackData.latitude || 12.9716,
+            lng: publicTrackData.longitude || 77.5946,
+            latitude: publicTrackData.latitude || 12.9716,
+            longitude: publicTrackData.longitude || 77.5946,
+            pincode: publicTrackData.pincode || '560001',
+            nearestPoliceStation: publicTrackData.nearest_police_station || 'Central Police Station, Bengaluru',
+            trackingStage: publicTrackData.location_tracking_stage || 'GPS_TAGGED'
           },
           citizen: { id: '0', name: 'Citizen', phone: 'Protected', email: 'Protected' },
           assignedOfficerName: publicTrackData.assigned_officer_name,
@@ -320,7 +329,8 @@ export const TrackComplaintPage: React.FC<TrackComplaintPageProps> = ({
             )}
           </div>
 
-
+          {/* Real-Time Incident Location & Field Dispatch Radar */}
+          <LocationTrackingRadar complaint={searchedComplaint} />
 
           {/* Action History Timeline */}
           <div className={`p-4 ${tokens.cardClass} space-y-3`}>

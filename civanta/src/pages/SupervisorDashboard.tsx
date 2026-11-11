@@ -208,89 +208,101 @@ export const SupervisorDashboard: React.FC<SupervisorDashboardProps> = ({
       </div>
 
       {/* Max 6 Interactive KPI Cards (Click to filter list below) */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 text-xs">
+      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3 text-xs">
         {/* 1. Total */}
         <div
           onClick={() => setActiveFilterStatus('all')}
-          className={`p-3 rounded-[6px] border transition-colors cursor-pointer space-y-1 ${
+          className={`p-3 rounded-[6px] border transition-colors cursor-pointer flex flex-col justify-between min-h-[105px] ${
             activeFilterStatus === 'all'
-              ? 'border-[#14213D] bg-slate-100/80 dark:bg-slate-800'
-              : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50'
+              ? 'border-police-700 dark:border-sky-500 bg-slate-100 dark:bg-slate-800'
+              : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/60'
           }`}
         >
-          <span className="text-[11px] text-slate-500 block font-medium">{t('Total Registered')}</span>
-          <p className="text-xl font-bold font-mono text-slate-900 dark:text-slate-100">{totalComplaints}</p>
-          <span className="text-[10px] text-slate-400 font-mono">{t('All grievance records')}</span>
+          <div>
+            <span className="text-[11px] text-slate-600 dark:text-slate-300 block font-medium leading-tight">{t('Total Registered')}</span>
+            <p className="text-xl font-bold font-mono text-slate-900 dark:text-slate-100 mt-1">{totalComplaints}</p>
+          </div>
+          <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono">{t('All grievance records')}</span>
         </div>
 
         {/* 2. Pending Inquiries */}
         <div
           onClick={() => setActiveFilterStatus('pending')}
-          className={`p-3 rounded-[6px] border transition-colors cursor-pointer space-y-1 ${
+          className={`p-3 rounded-[6px] border transition-colors cursor-pointer flex flex-col justify-between min-h-[105px] ${
             activeFilterStatus === 'pending'
-              ? 'border-[#D97706] bg-[#fffbeb] dark:bg-[#451a03]'
-              : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50'
+              ? 'border-amber-600 dark:border-amber-500 bg-amber-50 dark:bg-amber-950/70'
+              : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/60'
           }`}
         >
-          <span className="text-[11px] text-[#92400e] dark:text-[#fcd34d] block font-medium">{t('Action Pending')}</span>
-          <p className="text-xl font-bold font-mono text-[#D97706]">{pendingComplaints}</p>
-          <span className="text-[10px] text-slate-400 font-mono">{t('underInvestigation')}</span>
+          <div>
+            <span className="text-[11px] text-amber-800 dark:text-amber-300 block font-medium leading-tight">{t('Action Pending')}</span>
+            <p className="text-xl font-bold font-mono text-amber-600 dark:text-amber-400 mt-1">{pendingComplaints}</p>
+          </div>
+          <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono">{t('underInvestigation')}</span>
         </div>
 
         {/* 3. Resolved */}
         <div
           onClick={() => setActiveFilterStatus('resolved')}
-          className={`p-3 rounded-[6px] border transition-colors cursor-pointer space-y-1 ${
+          className={`p-3 rounded-[6px] border transition-colors cursor-pointer flex flex-col justify-between min-h-[105px] ${
             activeFilterStatus === 'resolved'
-              ? 'border-[#15803D] bg-[#f0fdf4] dark:bg-[#052e16]'
-              : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50'
+              ? 'border-emerald-600 dark:border-emerald-500 bg-emerald-50 dark:bg-emerald-950/70'
+              : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/60'
           }`}
         >
-          <span className="text-[11px] text-[#166534] dark:text-[#86efac] block font-medium">{t('resolved')}</span>
-          <p className="text-xl font-bold font-mono text-[#15803D]">{resolvedComplaints}</p>
-          <span className="text-[10px] text-slate-400 font-mono">{t('Certified closure')}</span>
+          <div>
+            <span className="text-[11px] text-emerald-800 dark:text-emerald-300 block font-medium leading-tight">{t('resolved')}</span>
+            <p className="text-xl font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-1">{resolvedComplaints}</p>
+          </div>
+          <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono">{t('Certified closure')}</span>
         </div>
 
         {/* 4. Overdue SLA (Red) */}
         <div
           onClick={() => setActiveFilterStatus('overdue')}
-          className={`p-3 rounded-[6px] border transition-colors cursor-pointer space-y-1 ${
+          className={`p-3 rounded-[6px] border transition-colors cursor-pointer flex flex-col justify-between min-h-[105px] ${
             activeFilterStatus === 'overdue'
-              ? 'border-[#B91C1C] bg-[#fef2f2] dark:bg-[#450a0a]'
-              : 'border-[#fecaca] dark:border-[#7f1d1d] bg-white dark:bg-slate-900 hover:bg-[#fef2f2]/40'
+              ? 'border-red-600 dark:border-red-500 bg-red-50 dark:bg-red-950/70'
+              : 'border-red-200 dark:border-red-900/60 bg-white dark:bg-slate-900 hover:bg-red-50/40 dark:hover:bg-red-950/30'
           }`}
         >
-          <span className="text-[11px] text-[#991b1b] dark:text-[#fca5a5] block font-bold">{t('Overdue SLA')}</span>
-          <p className="text-xl font-bold font-mono text-[#B91C1C]">{overdueComplaints.length}</p>
-          <span className="text-[10px] text-[#991b1b] dark:text-[#fca5a5] font-mono">{t('Breached deadline')}</span>
+          <div>
+            <span className="text-[11px] text-red-800 dark:text-red-300 block font-bold leading-tight">{t('Overdue SLA')}</span>
+            <p className="text-xl font-bold font-mono text-red-600 dark:text-red-400 mt-1">{overdueComplaints.length}</p>
+          </div>
+          <span className="text-[10px] text-red-700 dark:text-red-400 font-mono">{t('Breached deadline')}</span>
         </div>
 
         {/* 5. Escalated Cases (Red) */}
         <div
           onClick={() => setActiveFilterStatus('escalated')}
-          className={`p-3 rounded-[6px] border transition-colors cursor-pointer space-y-1 ${
+          className={`p-3 rounded-[6px] border transition-colors cursor-pointer flex flex-col justify-between min-h-[105px] ${
             activeFilterStatus === 'escalated'
-              ? 'border-[#B91C1C] bg-[#fef2f2] dark:bg-[#450a0a]'
-              : 'border-[#fecaca] dark:border-[#7f1d1d] bg-white dark:bg-slate-900 hover:bg-[#fef2f2]/40'
+              ? 'border-red-600 dark:border-red-500 bg-red-50 dark:bg-red-950/70'
+              : 'border-red-200 dark:border-red-900/60 bg-white dark:bg-slate-900 hover:bg-red-50/40 dark:hover:bg-red-950/30'
           }`}
         >
-          <span className="text-[11px] text-[#991b1b] dark:text-[#fca5a5] block font-bold">{t('Active Escalations')}</span>
-          <p className="text-xl font-bold font-mono text-[#B91C1C]">{escalatedComplaints.length}</p>
-          <span className="text-[10px] text-[#991b1b] dark:text-[#fca5a5] font-mono">Supervisor queue</span>
+          <div>
+            <span className="text-[11px] text-red-800 dark:text-red-300 block font-bold leading-tight">{t('Active Escalations')}</span>
+            <p className="text-xl font-bold font-mono text-red-600 dark:text-red-400 mt-1">{escalatedComplaints.length}</p>
+          </div>
+          <span className="text-[10px] text-red-700 dark:text-red-400 font-mono">Supervisor queue</span>
         </div>
 
         {/* 6. Awaiting Intake */}
         <div
           onClick={() => setActiveFilterStatus('assigned')}
-          className={`p-3 rounded-[6px] border transition-colors cursor-pointer space-y-1 ${
+          className={`p-3 rounded-[6px] border transition-colors cursor-pointer flex flex-col justify-between min-h-[105px] ${
             activeFilterStatus === 'assigned'
-              ? 'border-[#14213D] bg-slate-100 dark:bg-slate-800'
-              : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50'
+              ? 'border-police-700 dark:border-sky-500 bg-slate-100 dark:bg-slate-800'
+              : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/60'
           }`}
         >
-          <span className="text-[11px] text-slate-500 block font-medium">Awaiting Intake</span>
-          <p className="text-xl font-bold font-mono text-slate-800 dark:text-slate-200">{awaitingActionComplaints.length}</p>
-          <span className="text-[10px] text-slate-400 font-mono">Initial assignment</span>
+          <div>
+            <span className="text-[11px] text-slate-600 dark:text-slate-300 block font-medium leading-tight">{t('Awaiting Intake') || 'Awaiting Intake'}</span>
+            <p className="text-xl font-bold font-mono text-slate-900 dark:text-slate-100 mt-1">{awaitingActionComplaints.length}</p>
+          </div>
+          <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono">{t('Initial assignment') || 'Initial assignment'}</span>
         </div>
       </div>
 

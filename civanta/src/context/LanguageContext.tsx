@@ -16,6 +16,10 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   useEffect(() => {
     StorageService.setLanguage(language);
+    if (typeof document !== 'undefined') {
+      document.documentElement.lang = language;
+      document.documentElement.classList.toggle('lang-kn', language === 'kn');
+    }
   }, [language]);
 
   const setLanguage = (lang: 'en' | 'kn') => {

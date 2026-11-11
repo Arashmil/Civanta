@@ -2,9 +2,25 @@ export type UserRole = 'citizen' | 'junior_officer' | 'senior_supervisor' | 'adm
 
 export type CoreCategory =
   | 'Cybercrime'
+  | 'Financial Fraud & Scams'
   | 'Financial Fraud'
+  | 'Women & Child Safety'
+  | 'Theft & Burglary'
+  | 'Lost & Found Property'
   | 'Lost Property'
+  | 'Traffic & Road Safety'
   | 'Traffic & Public Safety'
+  | 'Assault & Violent Crimes'
+  | 'Narcotics & Illegal Substances'
+  | 'Narcotics & Substance Abuse'
+  | 'Missing Persons & Runaways'
+  | 'Missing Persons'
+  | 'Property & Land Disputes'
+  | 'Public Nuisance & Civic Grievances'
+  | 'Noise & Public Nuisance'
+  | 'Corruption & Police Misconduct'
+  | 'Senior Citizen Assistance'
+  | 'Organized Crime & Extortion'
   | 'Complaints Involving Individuals';
 
 export type ComplaintCategory =
@@ -113,11 +129,17 @@ export interface Complaint {
   incidentDate: string;
   incidentLocation: {
     address: string;
+    landmark?: string;
     city: string;
     district: string;
     pinCode?: string;
+    pincode?: string;
     lat?: number;
     lng?: number;
+    latitude?: number;
+    longitude?: number;
+    nearestPoliceStation?: string;
+    trackingStage?: string;
   };
   
   citizen: {

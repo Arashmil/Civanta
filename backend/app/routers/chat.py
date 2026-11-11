@@ -30,13 +30,34 @@ class ChatResponse(BaseModel):
 SYSTEM_PROMPT = """You are 'CIVANTA Sahāyaka' (ಸಿವಾಂತ ಸಹಾಯಕ), the official AI Grievance Assistant for Karnataka State Police (KSP).
 Your mission is to assist citizens, complainants, and police personnel politely, factually, and accurately.
 
+CRITICAL FORMATTING INSTRUCTIONS (STRICT PLAIN-TEXT ONLY):
+- Write in clean, professional, conversational plain text without markdown symbols.
+- DO NOT use markdown bold asterisks (never use **word**), italics (*word*), or any asterisks (*).
+- DO NOT use markdown header hashtags (#, ##, ###).
+- DO NOT use raw markdown bullet characters (* or -). If listing points, use clean plain text bullets (• ) or standard numbers (1., 2.).
+- Present case details in clean, natural lines, for example:
+  Case ID: KA-CYB-2026-0001
+  Subject: Unauthorized debit card OTP compromise
+  Status: In Progress
+  Assigned Officer: PSI Anand Kumar
+  Next Action: Trace IP origin of phishing server
+  Resolution Due Date: 2026-11-12
+- Keep answers concise, human-readable, and free of markdown syntax artifacts.
+
 KNOWLEDGE BASE & POLICE PROCEDURES:
-1. 5 STATUTORY GRIEVANCE CATEGORIES:
+1. STATUTORY POLICE GRIEVANCE CATEGORIES:
    - Cybercrime: UPI fraud, SIM swap, phishing, social media hacking, ransomware, fake accounts.
-   - Financial Fraud: bogus trading groups, loan app harassment, Ponzi schemes, counterfeit currency.
-   - Lost Property: lost mobile phones (CEIR tracking), laptops, bags, original certificates, passports.
-   - Traffic & Public Safety: dangerous overspeeding, hit-and-run, road encroachments, signal defects.
-   - Complaints Involving Individuals: landlord/tenant disputes, workplace harassment (POSH), neighbor disputes, stalking.
+   - Financial Fraud & Scams: bogus trading groups, loan app harassment, Ponzi schemes, counterfeit currency.
+   - Women & Child Safety: stalking, harassment, domestic violence, workplace POSH, eve-teasing.
+   - Theft & Burglary: house theft, chain snatching, vehicle theft, pickpocketing.
+   - Lost & Found Property: lost mobile phones (CEIR tracking), laptops, bags, original certificates, passports.
+   - Traffic & Road Safety: dangerous overspeeding, hit-and-run, road encroachments, signal defects.
+   - Assault & Violent Crimes: physical violence, life threats, weapons, grievous hurt.
+   - Narcotics & Illegal Substances: drug peddling, contraband, substance abuse.
+   - Missing Persons & Runaways: missing adults, missing children, tracing.
+   - Property & Land Disputes: land encroachment, tenant/landlord disputes, forged sale deeds.
+   - Public Nuisance & Civic Grievances: noise pollution, illegal dumping, public drinking.
+   - Corruption & Police Misconduct: bribery demands, officer harassment, procedural lapse.
 2. STATUTORY RESOLUTION SLA RULES:
    - 24 Hours: Investigating officer must acknowledge and log mandatory next action.
    - 3 Days Overdue: Automated escalation to Supervisory Command (DySP console).
@@ -55,8 +76,23 @@ KNOWLEDGE BASE & POLICE PROCEDURES:
    - If the user interacts in English, respond in professional administrative English.
 """
 
+def clean_chat_reply(text: str) -> str:
+    """Removes annoying markdown artifacts (*, **, #) to deliver clean, polished plain text."""
+    if not text:
+        return ""
+    # Strip markdown headers #, ##, ###
+    text = re.sub(r"^#{1,6}\s*", "", text, flags=re.MULTILINE)
+    # Strip ** bold and * italic markers
+    text = re.sub(r"\*{1,3}([^*]+)\*{1,3}", r"\1", text)
+    # Convert leading markdown bullets "* " or "- " to clean "• "
+    text = re.sub(r"^[*-]\s+", "• ", text, flags=re.MULTILINE)
+    # Strip any remaining stray asterisks or hashes
+    text = text.replace("**", "").replace("*", "")
+    text = re.sub(r"\n{3,}", "\n\n", text)
+    return text.strip()
+
 def extract_complaint_id(text: str) -> Optional[str]:
-    match = re.search(r"\b(KA-(?:CYB|FIN|LST|TRF|IND)-2026-\d{4})\b", text, re.IGNORECASE)
+    match = re.search(r"\b(KA-[A-Z]{3}-2026-\d{4})\b", text, re.IGNORECASE)
     return match.group(1).upper() if match else None
 
 def rule_based_fallback(message: str, comp_data: Optional[dict], lang: str) -> str:
@@ -210,7 +246,8 @@ def chat_with_bot(req: ChatRequest, db: Session = Depends(get_db)):
                 except Exception as model_err:
                     logger.warning(f"Chat model {model_name} failed: {model_err}, trying next...")
 
-            reply = response.text.strip()
+            raw_reply = response.text.strip() if (response and response.text) else ""
+            reply = clean_chat_reply(raw_reply)
             if "Suggested. Officer must confirm" not in reply and "ಸೂಚಿಸಲಾಗಿದೆ" not in reply:
                 reply += "\n\n[Suggested. Officer must confirm.]"
 
@@ -223,7 +260,7 @@ def chat_with_bot(req: ChatRequest, db: Session = Depends(get_db)):
             logger.warning(f"Gemini chat API call failed: {exc}. Using rule-based fallback.")
 
     # Rule-based fallback
-    reply = rule_based_fallback(req.message, comp_data, req.language or "en")
+    reply = clean_chat_reply(rule_based_fallback(req.message, comp_data, req.language or "en"))
     return ChatResponse(
         reply=reply,
         complaint_found=comp_data,

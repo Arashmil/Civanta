@@ -23,58 +23,135 @@ const RULES: CategoryRule[] = [
       'hacked', 'malware', 'ransomware', 'cyber', 'server breached', 'credential leak',
       'token hijacking', 'unauthorized access', 'data breach', 'spear phishing', 'ceo fraud',
       'instagram', 'facebook', 'twitter', 'fake account', 'impersonat', 'profile clone',
-      'social media', 'photos misused', 'dark web'
+      'social media', 'photos misused', 'dark web', 'deepfake', 'apk virus'
     ],
     keywordsKn: [
-      'ಹ್ಯಾಕಿಂಗ್', 'ಸರ್ವರ್', 'ಸೈಬರ್', 'ಅನಧಿಕೃತ ಪ್ರವೇಶ', 'ನಕಲಿ ಖಾತೆ', 'ಸಾಮಾಜಿಕ ಜಾಲತಾಣ'
+      'ಹ್ಯಾಕಿಂಗ್', 'ಸರ್ವರ್', 'ಸೈಬರ್', 'ಅನಧಿಕೃತ ಪ್ರವೇಶ', 'ನಕಲಿ ಖಾತೆ', 'ಸಾಮಾಜಿಕ ಜಾಲತಾಣ', 'ಖಾತೆ ಹ್ಯಾಕ್'
     ]
   },
   {
-    category: 'Financial Fraud',
+    category: 'Financial Fraud & Scams',
     defaultPriority: 'High',
     keywordsEn: [
       'upi', 'paytm', 'gpay', 'phonepe', 'bank', 'deducted', 'deduction', 'otp',
       'fraud', 'qr code', 'debited', 'credit card', 'debit card', 'phishing link',
       'electricity bill', 'unauthorized transaction', 'wire', 'scam', 'crypto scheme',
-      'lottery', 'investment fraud', 'lakh', 'rupees'
+      'lottery', 'investment fraud', 'lakh', 'rupees', 'loan app', 'ponzi', 'trading fraud'
     ],
     keywordsKn: [
-      'ಯುಪಿಐ', 'ಪಾವತಿ', 'ವಂಚನೆ', 'ಹಣ ಕಡಿತ', 'ಬ್ಯಾಂಕ್', 'ಖಾತೆ', 'ಓಟಿಪಿ', 'ಕ್ಯೂಆರ್ ಕೋಡ್', 'ಹಣ'
+      'ಯುಪಿಐ', 'ಪಾವತಿ', 'ವಂಚನೆ', 'ಹಣ ಕಡಿತ', 'ಬ್ಯಾಂಕ್', 'ಖಾತೆ', 'ಓಟಿಪಿ', 'ಕ್ಯೂಆರ್ ಕೋಡ್', 'ಹಣ', 'ಮೋಸ'
     ]
   },
   {
-    category: 'Lost Property',
+    category: 'Women & Child Safety',
+    defaultPriority: 'Urgent',
+    keywordsEn: [
+      'woman', 'women', 'girl', 'child', 'posh', 'pocso', 'stalking', 'harassment',
+      'domestic violence', 'dowry', 'eve teasing', 'acid', 'inappropriate touch', 'molestation',
+      'stalker', 'lewd messages', 'abuse'
+    ],
+    keywordsKn: [
+      'ಮಹಿಳೆ', 'ಮಕ್ಕಳು', 'ಕಿರುಕುಳ', 'ಕೌಟುಂಬಿಕ ಹಿಂಸೆ', 'ವರದಕ್ಷಿಣೆ', 'ಹಿಂಸೆ', 'ಪೀಡೆ', 'ಅಶ್ಲೀಲ'
+    ]
+  },
+  {
+    category: 'Theft & Burglary',
+    defaultPriority: 'High',
+    keywordsEn: [
+      'theft', 'stolen', 'robbery', 'burglary', 'house breaking', 'chain snatching', 'pickpocket',
+      'loot', 'break-in', 'stole', 'bike theft', 'car theft', 'jewelry stolen'
+    ],
+    keywordsKn: [
+      'ಕಳ್ಳತನ', 'ದರೋಡೆ', 'ಕಳ್ಳ', 'ಸರಗಳ್ಳತನ', 'ಬೈಕ್ ಕಳ್ಳತನ', 'ಚಿನ್ನಾಭರಣ ಕಳ್ಳತನ'
+    ]
+  },
+  {
+    category: 'Lost & Found Property',
     defaultPriority: 'Medium',
     keywordsEn: [
       'lost', 'misplaced', 'dropped', 'wallet', 'purse', 'passport', 'aadhaar',
-      'driving license', 'phone misplaced', 'metro station', 'luggage', 'keys', 'certificates'
+      'driving license', 'phone misplaced', 'metro station', 'luggage', 'keys', 'certificates',
+      'ceir', 'rc book', 'marks card'
     ],
     keywordsKn: [
-      'ಕಳೆದುಹೋಗಿದೆ', 'ವಾಲೆಟ್', 'ಪಾಸ್‌ಪೋರ್ಟ್', 'ಆಧಾರ್', 'ಮೊಬೈಲ್ ಕಳೆದುಹೋಗಿದೆ', 'ಬ್ಯಾಗ್'
+      'ಕಳೆದುಹೋಗಿದೆ', 'ವಾಲೆಟ್', 'ಪಾಸ್‌ಪೋರ್ಟ್', 'ಆಧಾರ್', 'ಮೊಬೈಲ್ ಕಳೆದುಹೋಗಿದೆ', 'ಬ್ಯಾಗ್', 'ದಾಖಲೆ', 'ಕಾಣೆಯಾದ'
     ]
   },
   {
-    category: 'Traffic & Public Safety',
+    category: 'Traffic & Road Safety',
     defaultPriority: 'Medium',
     keywordsEn: [
       'traffic', 'accident', 'hit and run', 'signal jumping', 'rash driving', 'road rage',
-      'pothole', 'street light', 'public nuisance', 'loudspeaker', 'drunk driving', 'speeding'
+      'pothole', 'street light', 'drunk driving', 'speeding', 'parking obstruction'
     ],
     keywordsKn: [
-      'ಸಂಚಾರ', 'ಅಪಘಾತ', 'ರಸ್ತೆ', 'ಸಿಗ್ನಲ್', 'ಅತಿವೇಗ'
+      'ಸಂಚಾರ', 'ಅಪಘಾತ', 'ರಸ್ತೆ', 'ಸಿಗ್ನಲ್', 'ಅತಿವೇಗ', 'ಪಾರ್ಕಿಂಗ್', 'ಮದ್ಯಪಾನ ಚಾಲನೆ'
     ]
   },
   {
-    category: 'Complaints Involving Individuals',
-    defaultPriority: 'High',
+    category: 'Assault & Violent Crimes',
+    defaultPriority: 'Urgent',
     keywordsEn: [
-      'harass', 'stalking', 'threat', 'blackmail', 'extortion', 'abusive', 'voip',
-      'morphed', 'intimidation', 'lewd', 'obscene', 'stalker', 'missing', 'disappeared',
-      'lost child', 'kidnap', 'not returned', 'untraceable', 'vanished', 'runaway', 'neighbor dispute',
-      'assault', 'fight'
+      'assault', 'fight', 'threat', 'threatening', 'beating', 'attack', 'murder threat',
+      'grievous hurt', 'gang', 'weapon', 'knife', 'injury', 'physical abuse', 'extortion'
     ],
     keywordsKn: [
-      'ಕಿರುಕುಳ', 'ಬೆದರಿಕೆ', 'ಹಣಕ್ಕಾಗಿ ಪೀಡಿಸುವುದು', 'ಅಶ್ಲೀಲ', 'ಹಿಂಬಾಲಿಸುವುದು', 'ಕಾಣೆಯಾದ', 'ನಾಪತ್ತೆ', 'ಮಗು', 'ಜಗಳ'
+      'ಹಲ್ಲೆ', 'ಜಗಳ', 'ಮಾರಾಮಾರಿ', 'ಬೆದರಿಕೆ', 'ಹೊಡೆದಾಟ', 'ಗಾಯ', 'ಮಾರಕಾಸ್ತ್ರ', 'ದೌರ್ಜನ್ಯ'
+    ]
+  },
+  {
+    category: 'Narcotics & Illegal Substances',
+    defaultPriority: 'High',
+    keywordsEn: [
+      'drugs', 'narcotics', 'weed', 'ganja', 'cocaine', 'heroin', 'meth', 'substance',
+      'peddling', 'contraband', 'illegal alcohol', 'rave party', 'mdma'
+    ],
+    keywordsKn: [
+      'ಮಾದಕ ದ್ರವ್ಯ', 'ಗಾಂಜಾ', 'ಡ್ರಗ್ಸ್', 'ಅಕ್ರಮ ಮದ್ಯ', 'ಸಾಗಾಣಿಕೆ'
+    ]
+  },
+  {
+    category: 'Missing Persons & Runaways',
+    defaultPriority: 'Urgent',
+    keywordsEn: [
+      'missing person', 'missing child', 'disappeared', 'runaway', 'untraceable',
+      'not returned home', 'kidnapped', 'abducted'
+    ],
+    keywordsKn: [
+      'ಕಾಣೆಯಾಗಿದ್ದಾರೆ', 'ನಾಪತ್ತೆ', 'ಮನೆಗೆ ಬಂದಿಲ್ಲ', 'ಅಪಹರಣ'
+    ]
+  },
+  {
+    category: 'Property & Land Disputes',
+    defaultPriority: 'Medium',
+    keywordsEn: [
+      'land dispute', 'property', 'encroachment', 'fake agreement', 'illegal possession',
+      'tenant', 'landlord eviction', 'boundary dispute', 'forged deed', 'khata fraud'
+    ],
+    keywordsKn: [
+      'ಆಸ್ತಿ', 'ಜಮೀನು ವಿವಾದ', 'ಒತ್ತುವರಿ', 'ಖಾಲಿ ಮಾಡಿಸುವುದು', 'ಬಾಡಿಗೆದಾರ', 'ನಕಲಿ ದಾಖಲೆ'
+    ]
+  },
+  {
+    category: 'Public Nuisance & Civic Grievances',
+    defaultPriority: 'Low',
+    keywordsEn: [
+      'nuisance', 'loudspeaker', 'noise', 'illegal dumping', 'garbage', 'public drinking',
+      'gambling', 'illegal construction', 'street harassment'
+    ],
+    keywordsKn: [
+      'ಸಾರ್ವಜನಿಕ ಕಿರುಕುಳ', 'ಶಬ್ದ ಮಾಲಿನ್ಯ', 'ಕಸ ಸುರಿಯುವುದು', 'ಅಕ್ರಮ ಜೂಜು', 'ಕಿರಿಕಿರಿ'
+    ]
+  },
+  {
+    category: 'Corruption & Police Misconduct',
+    defaultPriority: 'High',
+    keywordsEn: [
+      'corruption', 'bribe', 'bribery', 'extortion by official', 'police harassment',
+      'illegal detention', 'refusal to register', 'misconduct'
+    ],
+    keywordsKn: [
+      'ಲಂಚ', 'ಭ್ರಷ್ಟಾಚಾರ', 'ಅಧಿಕಾರ ದುರುಪಯೋಗ', 'ಅನಗತ್ಯ ಕಿರುಕುಳ'
     ]
   }
 ];

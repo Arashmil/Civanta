@@ -40,56 +40,63 @@
 }
 
 .dark {
-  --color-primary: #14213D;
-  --color-primary-hover: #1e2e50;
-  --color-primary-subtle: #192742;
+  --color-primary: #1e293b;
+  --color-primary-hover: #334155;
+  --color-primary-subtle: #1e293b;
   --color-primary-text: #f8fafc;
   
-  --color-surface-bg: #090d16;
-  --color-surface-card: #0f172a;
-  --color-surface-subtle: #1e293b;
-  --color-surface-muted: #334155;
+  --color-surface-bg: #0b1120;
+  --color-surface-card: #131d31;
+  --color-surface-subtle: #1c273e;
+  --color-surface-muted: #2d3d5b;
   
-  --color-border: #1e293b;
-  --color-border-subtle: #334155;
-  --color-border-strong: #475569;
+  --color-border: #23314d;
+  --color-border-subtle: #334466;
+  --color-border-strong: #475e8a;
   
   --color-text-main: #f8fafc;
   --color-text-secondary: #cbd5e1;
   --color-text-muted: #94a3b8;
   
-  --color-amber: #D97706;
+  --color-amber: #f59e0b;
   --color-amber-bg: #451a03;
-  --color-amber-border: #78350f;
-  --color-amber-text: #fcd34d;
+  --color-amber-border: #b45309;
+  --color-amber-text: #fde68a;
   
-  --color-red: #B91C1C;
+  --color-red: #ef4444;
   --color-red-bg: #450a0a;
-  --color-red-border: #7f1d1d;
+  --color-red-border: #b91c1c;
   --color-red-text: #fca5a5;
   
-  --color-green: #15803D;
+  --color-green: #22c55e;
   --color-green-bg: #052e16;
-  --color-green-border: #14532d;
-  --color-green-text: #86efac;
+  --color-green-border: #15803d;
+  --color-green-text: #bbf7d0;
 }
 
 @layer base {
   html {
-    font-size: 19px; /* Scaled up by ~20% base to make the entire UI highly readable */
+    font-size: 16px; /* Standard accessible 16px base font size */
     font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
     scroll-behavior: smooth;
     color: var(--color-text-main);
     background-color: var(--color-surface-bg);
   }
 
+  /* When Kannada is selected, provide balanced vertical metrics & font fallback */
+  html.lang-kn, html[lang="kn"] {
+    font-family: 'Noto Sans Kannada', 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    line-height: 1.6;
+  }
+
   body {
-    @apply bg-slate-50 text-slate-900 dark:bg-[#090d16] dark:text-slate-100;
+    @apply bg-slate-50 text-slate-900 dark:bg-[#0b1120] dark:text-slate-100;
     font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
     -webkit-font-smoothing: antialiased;
     font-size: 1rem;
     line-height: 1.5;
+    overflow-x: hidden;
   }
 
   code, pre, .font-mono {

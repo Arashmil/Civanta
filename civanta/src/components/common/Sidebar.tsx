@@ -108,8 +108,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <aside
-      className={`fixed md:sticky top-14 z-20 h-[calc(100vh-3.5rem)] bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 transition-all duration-200 flex flex-col justify-between ${
-        isOpen ? 'w-56' : 'w-14'
+      className={`fixed md:sticky top-14 z-20 h-[calc(100vh-3.5rem)] bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 transition-all duration-200 flex flex-col justify-between shrink-0 ${
+        isOpen ? 'w-64' : 'w-14'
       }`}
     >
       {/* Top Nav Section */}

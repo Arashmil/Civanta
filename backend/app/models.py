@@ -61,6 +61,16 @@ class Complaint(Base):
     assigned_unit = Column(String(120), nullable=False)
     assigned_area = Column(String(120), nullable=False)
     
+    # Location Tracking & Geospatial Dispatch
+    latitude = Column(Float, nullable=True)
+    longitude = Column(Float, nullable=True)
+    landmark = Column(String(255), nullable=True)
+    city = Column(String(100), nullable=True, default="Bengaluru")
+    district = Column(String(100), nullable=True, default="Bengaluru Urban")
+    pincode = Column(String(20), nullable=True)
+    nearest_police_station = Column(String(255), nullable=True)
+    location_tracking_stage = Column(String(50), nullable=True, default="GPS_TAGGED")
+    
     next_action = Column(String(255), nullable=False)
     due_date = Column(DateTime, nullable=False, index=True)
     

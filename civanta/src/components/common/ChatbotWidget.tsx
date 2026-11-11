@@ -119,6 +119,82 @@ export const ChatbotWidget: React.FC = () => {
     setMessages([initialGreeting]);
   };
 
+  const renderCleanMessage = (content: string, isUser: boolean) => {
+    if (isUser) {
+      return <span>{content}</span>;
+    }
+    // Clean out markdown asterisks, hashtag headers, and messy bullet symbols
+    const sanitized = content
+      .replace(/^#{1,6}\s*/gm, '')
+      .replace(/\*{1,3}([^*]+)\*{1,3}/g, '$1')
+      .replace(/^[*-]\s+/gm, '• ')
+      .replace(/\*\*/g, '')
+      .replace(/\*/g, '');
+
+    const lines = sanitized.split('\n');
+    return (
+      <div className="space-y-1">
+        {lines.map((line, idx) => {
+          const trimmed = line.trim();
+          if (!trimmed) return <div key={idx} className="h-1" />;
+
+          // Bullet points
+          if (trimmed.startsWith('•')) {
+            const bulletText = trimmed.replace(/^•\s*/, '');
+            const colonIdx = bulletText.indexOf(':');
+            if (colonIdx > 0 && colonIdx < 35) {
+              const label = bulletText.slice(0, colonIdx);
+              const val = bulletText.slice(colonIdx + 1);
+              return (
+                <div key={idx} className="flex items-start gap-1.5 pl-0.5 text-[11.5px] leading-relaxed">
+                  <span className="text-amber-500 font-bold shrink-0">•</span>
+                  <span>
+                    <span className="font-semibold text-slate-800 dark:text-slate-200">{label}:</span>
+                    <span className="text-slate-600 dark:text-slate-300">{val}</span>
+                  </span>
+                </div>
+              );
+            }
+            return (
+              <div key={idx} className="flex items-start gap-1.5 pl-0.5 text-[11.5px] leading-relaxed">
+                <span className="text-amber-500 font-bold shrink-0">•</span>
+                <span className="text-slate-700 dark:text-slate-200">{bulletText}</span>
+              </div>
+            );
+          }
+
+          // Plain key: value
+          const colonIdx = trimmed.indexOf(':');
+          if (colonIdx > 0 && colonIdx < 30 && !trimmed.startsWith('http') && !trimmed.startsWith('[') && !trimmed.startsWith('ಗಡುವು:')) {
+            const label = trimmed.slice(0, colonIdx);
+            const val = trimmed.slice(colonIdx + 1);
+            return (
+              <div key={idx} className="text-[11.5px] leading-relaxed">
+                <span className="font-semibold text-slate-800 dark:text-slate-200">{label}:</span>
+                <span className="text-slate-600 dark:text-slate-300">{val}</span>
+              </div>
+            );
+          }
+
+          // Statutory notice disclaimer
+          if (trimmed.includes('[Suggested. Officer must confirm.]') || trimmed.includes('[ಸೂಚಿಸಲಾಗಿದೆ')) {
+            return (
+              <div key={idx} className="mt-1.5 pt-1 border-t border-slate-200/80 dark:border-slate-800 text-[10px] text-amber-700 dark:text-amber-400 font-mono">
+                {trimmed}
+              </div>
+            );
+          }
+
+          return (
+            <p key={idx} className="text-[11.5px] leading-relaxed text-slate-800 dark:text-slate-200">
+              {trimmed}
+            </p>
+          );
+        })}
+      </div>
+    );
+  };
+
   return (
     <aside className="fixed bottom-6 left-6 z-40 no-print flex flex-col items-start font-sans">
       {/* Floating Trigger Button */}
@@ -205,13 +281,13 @@ export const ChatbotWidget: React.FC = () => {
                     className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}
                   >
                     <div
-                      className={`max-w-[85%] rounded-[6px] p-2.5 text-xs leading-relaxed whitespace-pre-line ${
+                      className={`max-w-[85%] rounded-[6px] p-2.5 text-xs leading-relaxed ${
                         msg.role === 'user'
-                          ? 'bg-[#14213D] text-white rounded-br-none'
+                          ? 'bg-[#14213D] text-white rounded-br-none whitespace-pre-line'
                           : 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-800 rounded-bl-none shadow-xs'
                       }`}
                     >
-                      {msg.content}
+                      {renderCleanMessage(msg.content, msg.role === 'user')}
 
                       {/* Complaint Quick Badge if case was queried */}
                       {msg.complaintFound && (

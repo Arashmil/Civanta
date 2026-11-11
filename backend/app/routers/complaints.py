@@ -33,11 +33,55 @@ router = APIRouter(prefix="/api/complaints", tags=["Complaints"])
 
 CATEGORY_PREFIX_MAP = {
     "Cybercrime": "CYB",
+    "Financial Fraud & Scams": "FIN",
     "Financial Fraud": "FIN",
+    "Women & Child Safety": "WCS",
+    "Theft & Burglary": "THF",
+    "Lost & Found Property": "LST",
     "Lost Property": "LST",
+    "Traffic & Road Safety": "TRF",
     "Traffic & Public Safety": "TRF",
+    "Assault & Violent Crimes": "VIO",
+    "Narcotics & Illegal Substances": "NAR",
+    "Missing Persons & Runaways": "MIS",
+    "Property & Land Disputes": "PRP",
+    "Public Nuisance & Civic Grievances": "NUI",
+    "Corruption & Police Misconduct": "COR",
     "Complaints Involving Individuals": "IND",
 }
+
+def determine_nearest_police_station(area: str, lat: Optional[float] = None, lon: Optional[float] = None) -> str:
+    """Calculates or maps the nearest police station with realistic proximity."""
+    if lat and lon:
+        stations = [
+            ("Cyber Crime Police Station (CCPS), CID HQ", 12.9719, 77.5937),
+            ("Cubbon Park Police Station", 12.9763, 77.5929),
+            ("Koramangala Police Station", 12.9352, 77.6245),
+            ("Indiranagar Police Station", 12.9784, 77.6408),
+            ("Jayanagar Police Station", 12.9308, 77.5838),
+            ("Whitefield Police Station", 12.9698, 77.7499),
+            ("Electronic City Police Station", 12.8452, 77.6602),
+            ("Yeshwanthpur Police Station", 13.0238, 77.5529),
+        ]
+        import math
+        def dist(s_lat, s_lon):
+            return math.sqrt((lat - s_lat)**2 + (lon - s_lon)**2) * 111
+        nearest = min(stations, key=lambda s: dist(s[1], s[2]))
+        km = dist(nearest[1], nearest[2])
+        return f"{nearest[0]} ({km:.1f} km away)"
+    
+    area_lower = area.lower() if area else ""
+    if "cyber" in area_lower:
+        return "CCPS Cyber Crime HQ, Palace Road (1.2 km away)"
+    elif "koramangala" in area_lower:
+        return "Koramangala Police Station, 80ft Road (0.9 km away)"
+    elif "indiranagar" in area_lower:
+        return "Indiranagar Police Station, 100ft Road (1.1 km away)"
+    elif "jayanagar" in area_lower:
+        return "Jayanagar 4th Block Police Station (1.3 km away)"
+    elif "whitefield" in area_lower:
+        return "Whitefield Main Police Station (2.0 km away)"
+    return f"{area or 'Central'} Police Station (1.5 km away)"
 
 def generate_unique_complaint_id(db: Session, category: str) -> str:
     """Generates sequential ID in required format: KA-CYB-2026-0001."""
@@ -56,6 +100,12 @@ async def submit_complaint(
     description: str = Form(...),
     area: str = Form("Bengaluru Central"),
     phone: Optional[str] = Form(None),
+    latitude: Optional[float] = Form(None),
+    longitude: Optional[float] = Form(None),
+    landmark: Optional[str] = Form(None),
+    city: Optional[str] = Form("Bengaluru"),
+    district: Optional[str] = Form("Bengaluru Urban"),
+    pincode: Optional[str] = Form(None),
     file: Optional[UploadFile] = File(None),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -121,6 +171,8 @@ async def submit_complaint(
     sla_hours = SLA_DURATIONS.get(priority, 72)
     initial_due_date = sim_now + timedelta(hours=sla_hours)
     initial_next_action = f"Preliminary intake verification of complaint statement and evidence ({priority} priority standard SLA)"
+    nearest_station = determine_nearest_police_station(area=area, lat=latitude, lon=longitude)
+    tracking_stage = "GPS_TAGGED" if (latitude and longitude) else "STATION_ALERTED"
 
     # Create complaint instance
     complaint = Complaint(
@@ -143,6 +195,14 @@ async def submit_complaint(
         assigned_officer_name="Pending Assignment",
         assigned_unit="Police Dispatch Pool",
         assigned_area=area,
+        latitude=latitude,
+        longitude=longitude,
+        landmark=landmark,
+        city=city or "Bengaluru",
+        district=district or "Bengaluru Urban",
+        pincode=pincode,
+        nearest_police_station=nearest_station,
+        location_tracking_stage=tracking_stage,
         next_action=initial_next_action,
         due_date=initial_due_date,
         created_at=sim_now,
@@ -291,6 +351,14 @@ def track_complaint(
         is_escalated=complaint.is_escalated,
         assigned_department=complaint.assigned_unit,
         assigned_officer_designation=f"Investigating Officer ({complaint.assigned_unit})",
+        latitude=complaint.latitude,
+        longitude=complaint.longitude,
+        landmark=complaint.landmark,
+        city=complaint.city or "Bengaluru",
+        district=complaint.district or "Bengaluru Urban",
+        pincode=complaint.pincode,
+        nearest_police_station=complaint.nearest_police_station,
+        location_tracking_stage=complaint.location_tracking_stage or "GPS_TAGGED",
         created_at=complaint.created_at,
         ai_disclaimer="Suggested. Officer must confirm.",
         resolution_report=complaint.resolution_report,

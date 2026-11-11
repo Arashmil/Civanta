@@ -14,6 +14,7 @@ import { ReopenModal } from '../components/complaints/ReopenModal';
 import { api } from '../services/api';
 import { SLACountdown } from '../components/common/SLACountdown';
 import { EscalationLadderStepper } from '../components/complaints/EscalationLadderStepper';
+import { LocationTrackingRadar } from '../components/common/LocationTrackingRadar';
 import { tokens } from '../tokens';
 import {
   Shield,
@@ -441,6 +442,9 @@ export const ComplaintDetailPage: React.FC<ComplaintDetailPageProps> = ({
             </div>
           </div>
 
+          {/* Incident Location & Real-Time Field Dispatch Radar Card */}
+          <LocationTrackingRadar complaint={complaint} />
+
           {/* Incident Description */}
           <div className={`p-4 ${tokens.cardClass} space-y-2`}>
             <h3 className="font-bold text-xs uppercase tracking-wider text-slate-700 dark:text-slate-300 pb-1.5 border-b border-slate-100 dark:border-slate-800">
@@ -675,6 +679,13 @@ export const ComplaintDetailPage: React.FC<ComplaintDetailPageProps> = ({
                   <option value="Lost Property">{t('Lost Property')}</option>
                   <option value="Traffic & Public Safety">{t('Traffic & Public Safety')}</option>
                   <option value="Complaints Involving Individuals">{t('Complaints Involving Individuals')}</option>
+                  <option value="Women & Child Safety">{t('Women & Child Safety')}</option>
+                  <option value="Theft & Burglary">{t('Theft & Burglary')}</option>
+                  <option value="Narcotics & Illegal Substances">{t('Narcotics & Substance Abuse') || t('Narcotics & Illegal Substances')}</option>
+                  <option value="Missing Persons & Runaways">{t('Missing Persons') || t('Missing Persons & Runaways')}</option>
+                  <option value="Public Nuisance & Civic Grievances">{t('Noise & Public Nuisance') || t('Public Nuisance & Civic Grievances')}</option>
+                  <option value="Senior Citizen Assistance">{t('Senior Citizen Assistance')}</option>
+                  <option value="Organized Crime & Extortion">{t('Organized Crime & Extortion')}</option>
                 </select>
               </div>
 

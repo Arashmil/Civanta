@@ -23,9 +23,17 @@ interface SubmitComplaintParams {
   incidentDate?: string;
   incidentLocation?: {
     address: string;
+    landmark?: string;
     city: string;
     district: string;
     pinCode?: string;
+    pincode?: string;
+    latitude?: number;
+    longitude?: number;
+    lat?: number;
+    lng?: number;
+    nearestPoliceStation?: string;
+    trackingStage?: string;
   };
   citizenName?: string;
   citizenPhone?: string;
@@ -100,9 +108,17 @@ function mapBackendComplaint(b: any): Complaint {
     incidentDate: b.created_at,
     incidentLocation: {
       address: b.assigned_area || 'Bengaluru Central',
-      city: 'Bengaluru',
-      district: 'Bengaluru Urban',
-      pinCode: '560001',
+      landmark: b.landmark || '',
+      city: b.city || 'Bengaluru',
+      district: b.district || 'Bengaluru Urban',
+      pinCode: b.pincode || '560001',
+      pincode: b.pincode || '560001',
+      lat: b.latitude,
+      lng: b.longitude,
+      latitude: b.latitude,
+      longitude: b.longitude,
+      nearestPoliceStation: b.nearest_police_station || `${b.assigned_unit || 'City Police'} (1.5 km away)`,
+      trackingStage: b.location_tracking_stage || 'GPS_TAGGED',
     },
 
     citizen: {
@@ -286,6 +302,14 @@ export const GrievanceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     formData.append('title', params.title);
     formData.append('description', params.description);
     formData.append('area', params.incidentLocation?.address || 'Bengaluru Central');
+    if (params.incidentLocation?.latitude) formData.append('latitude', String(params.incidentLocation.latitude));
+    if (params.incidentLocation?.longitude) formData.append('longitude', String(params.incidentLocation.longitude));
+    if (params.incidentLocation?.landmark) formData.append('landmark', params.incidentLocation.landmark);
+    if (params.incidentLocation?.city) formData.append('city', params.incidentLocation.city);
+    if (params.incidentLocation?.district) formData.append('district', params.incidentLocation.district);
+    if (params.incidentLocation?.pinCode || params.incidentLocation?.pincode) {
+      formData.append('pincode', (params.incidentLocation.pinCode || params.incidentLocation.pincode)!);
+    }
     if (params.citizenPhone) formData.append('phone', params.citizenPhone);
     if (params.file) formData.append('file', params.file);
 

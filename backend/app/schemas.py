@@ -41,6 +41,12 @@ class ComplaintCreate(BaseModel):
     description: str = Field(..., min_length=10)  # Original text in Kannada or English
     area: Optional[str] = "Bengaluru Central"
     phone: Optional[str] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    landmark: Optional[str] = None
+    city: Optional[str] = "Bengaluru"
+    district: Optional[str] = "Bengaluru Urban"
+    pincode: Optional[str] = None
 
 class DocumentOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -101,6 +107,14 @@ class ComplaintOut(BaseModel):
     assigned_officer_name: str
     assigned_unit: str
     assigned_area: str
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    landmark: Optional[str] = None
+    city: Optional[str] = "Bengaluru"
+    district: Optional[str] = "Bengaluru Urban"
+    pincode: Optional[str] = None
+    nearest_police_station: Optional[str] = None
+    location_tracking_stage: Optional[str] = "GPS_TAGGED"
     next_action: str
     due_date: datetime
     resolution_report: Optional[str] = None
@@ -128,6 +142,14 @@ class ComplaintTrackOut(BaseModel):
     is_escalated: bool
     assigned_department: str
     assigned_officer_designation: str
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    landmark: Optional[str] = None
+    city: Optional[str] = "Bengaluru"
+    district: Optional[str] = "Bengaluru Urban"
+    pincode: Optional[str] = None
+    nearest_police_station: Optional[str] = None
+    location_tracking_stage: Optional[str] = "GPS_TAGGED"
     created_at: datetime
     ai_disclaimer: str = "Suggested. Officer must confirm."
     resolution_report: Optional[str] = None

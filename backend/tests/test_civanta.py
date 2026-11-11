@@ -4,11 +4,12 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from app.main import app
-from app.database import SessionLocal
+from app.database import SessionLocal, run_migrations
 from app.models import Complaint, ActionLog, User, Notification
 from app.clock import reset_clock, fast_forward, get_now
 from app.audit import verify_audit_chain
 
+run_migrations()
 client = TestClient(app)
 
 def test_health_and_root():

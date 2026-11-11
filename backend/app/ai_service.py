@@ -12,33 +12,75 @@ logger = logging.getLogger(__name__)
 
 KANNADA_UNICODE_PATTERN = re.compile(r"[\u0C80-\u0CFF]")
 
-# Keyword dictionaries for the 5 categories (English & Kannada)
+# Comprehensive Police Grievance Category Taxonomy (English & Kannada)
 CATEGORY_KEYWORDS = {
     "Cybercrime": [
         "cyber", "hack", "hacked", "phishing", "malware", "virus", "otp", "sim swap", 
         "fake website", "ransomware", "apk", "social media hack", "instagram", "facebook",
+        "deepfake", "dark web", "identity theft",
         "ಸೈಬರ್", "ಹ್ಯಾಕ್", "ಒಟಿಪಿ", "ಲಿಂಕ್", "ವೈರಸ್", "ಸಾಮಾಜಿಕ ಜಾಲತಾಣ", "ಖಾತೆ ಹ್ಯಾಕ್"
     ],
-    "Financial Fraud": [
+    "Financial Fraud & Scams": [
         "fraud", "cheated", "bank", "upi", "gpay", "phonepe", "paytm", "atm", "credit card",
         "debit card", "investment scam", "loan scam", "crypto", "money transfer", "unauthorized transaction",
-        "ಹಣ", "ಬ್ಯಾಂಕ್", "ವಂಚನೆ", "ಯುಪಿಐ", "ಸಾಲ", "ಖಾತೆ", "ವರ್ಗಾವಣೆ", "ಮೋಸ"
+        "ponzi", "chit fund", "trading group", "fake call", "lottery",
+        "ಹಣ", "ಬ್ಯಾಂಕ್", "ವಂಚನೆ", "ಯುಪಿಐ", "ಸಾಲ", "ಖಾತೆ", "ವರ್ಗಾವಣೆ", "ಮೋಸ", "ಚಿಟ್‌ಫಂಡ್"
     ],
-    "Lost Property": [
+    "Women & Child Safety": [
+        "woman", "women", "girl", "child", "children", "posh", "pocso", "stalking", "harassment",
+        "domestic violence", "dowry", "eve teasing", "acid", "inappropriate touch", "molestation",
+        "ಮಹಿಳೆ", "ಮಕ್ಕಳು", "ಕಿರುಕುಳ", "ಕೌಟುಂಬಿಕ ಹಿಂಸೆ", "ವರದಕ್ಷಿಣೆ", "ಹಿಂಸೆ", "ಪೀಡೆ"
+    ],
+    "Theft & Burglary": [
+        "theft", "stolen", "robbery", "burglary", "house breaking", "chain snatching", "pickpocket",
+        "loot", "break-in", "stole", "bike theft", "car theft", "jewelry stolen",
+        "ಕಳ್ಳತನ", "ದರೋಡೆ", "ಕಳ್ಳ", "ಸರಗಳ್ಳತನ", "ಬೈಕ್ ಕಳ್ಳತನ", "ಚಿನ್ನಾಭರಣ ಕಳ್ಳತನ"
+    ],
+    "Lost & Found Property": [
         "lost", "missing", "wallet", "purse", "phone", "mobile", "laptop", "bag", "vehicle",
-        "bike", "car", "license", "rc book", "certificate", "passport", "pan card", "aadhaar",
-        "ಕಳೆದುಹೋದ", "ಮೊಬೈಲ್", "ವಾಹನ", "ದಾಖಲೆ", "ಪರ್ಸ್", "ಬ್ಯಾಗ್", "ಕಾಣೆಯಾದ", "ಪಾಸ್‌ಪೋರ್ಟ್"
+        "bike", "car", "license", "rc book", "certificate", "passport", "pan card", "aadhaar", "ceir",
+        "ಕಳೆದುಹೋದ", "ಮೊಬೈಲ್", "ವಾಹನ", "ದಾಖಲೆ", "ಪರ್ಸ್", "ಬ್ಯಾಗ್", "ಕಾಣೆಯಾದ", "ಪಾಸ್‌ಪೋರ್ಟ್", "ಗುರುತಿನ ಚೀಟಿ"
     ],
-    "Traffic & Public Safety": [
+    "Traffic & Road Safety": [
         "traffic", "signal", "accident", "hit and run", "rash driving", "overspeeding",
-        "parking", "road block", "pothole", "drunk driving", "street light", "junction",
-        "ರಸ್ತೆ", "ಅಪಘಾತ", "ಸಿಗ್ನಲ್", "ಪಾರ್ಕಿಂಗ್", "ವಾಹನ", "ದಟ್ಟಣೆ", "ಮದ್ಯಪಾನ ಚಾಲನೆ"
+        "parking", "road block", "pothole", "drunk driving", "street light", "junction", "road rage",
+        "ರಸ್ತೆ", "ಅಪಘಾತ", "ಸಿಗ್ನಲ್", "ಪಾರ್ಕಿಂಗ್", "ವಾಹನ", "ದಟ್ಟಣೆ", "ಮದ್ಯಪಾನ ಚಾಲನೆ", "ಹಿಟ್ ಆಂಡ್ ರನ್"
     ],
-    "Complaints Involving Individuals": [
-        "assault", "fight", "threat", "threatening", "neighbor", "harassment", "abuse",
-        "domestic violence", "blackmail", "stalking", "defamation", "tenant", "landlord",
-        "ಗಲಾಟೆ", "ಬೆದರಿಕೆ", "ಜಗಳ", "ದೌರ್ಜನ್ಯ", "ಕಿರುಕುಳ", "ಹಲ್ಲೆ", "ಪಕ್ಕದ ಮನೆಯವರು", "ಹಿಂಸೆ"
-    ]
+    "Assault & Violent Crimes": [
+        "assault", "fight", "threat", "threatening", "beating", "attack", "murder threat",
+        "grievous hurt", "gang", "weapon", "knife", "injury", "physical abuse", "extortion",
+        "ಹಲ್ಲೆ", "ಜಗಳ", "ಮಾರಾಮಾರಿ", "ಬೆದರಿಕೆ", "ಹೊಡೆದಾಟ", "ಗಾಯ", "ಮಾರಕಾಸ್ತ್ರ", "ದೌರ್ಜನ್ಯ"
+    ],
+    "Narcotics & Illegal Substances": [
+        "drugs", "narcotics", "weed", "ganja", "cocaine", "heroin", "meth", "substance",
+        "peddling", "contraband", "illegal alcohol", "rave party", "mdma",
+        "ಮಾದಕ ದ್ರವ್ಯ", "ಗಾಂಜಾ", "ಡ್ರಗ್ಸ್", "ಅಕ್ರಮ ಮದ್ಯ", "ಸಾಗಾಣಿಕೆ"
+    ],
+    "Missing Persons & Runaways": [
+        "missing person", "missing child", "disappeared", "runaway", "untraceable",
+        "not returned home", "kidnapped", "abducted",
+        "ಕಾಣೆಯಾಗಿದ್ದಾರೆ", "ನಾಪತ್ತೆ", "ಮನೆಗೆ ಬಂದಿಲ್ಲ", "ಅಪಹರಣ"
+    ],
+    "Property & Land Disputes": [
+        "land dispute", "property", "encroachment", "fake agreement", "illegal possession",
+        "tenant", "landlord eviction", "boundary dispute", "forged deed", "khata fraud",
+        "ಆಸ್ತಿ", "ಜಮೀನು ವಿವಾದ", "ಒತ್ತುವರಿ", "ಖಾಲಿ ಮಾಡಿಸುವುದು", "ಬಾಡಿಗೆದಾರ", "ನಕಲಿ ದಾಖಲೆ"
+    ],
+    "Public Nuisance & Civic Grievances": [
+        "nuisance", "loudspeaker", "noise", "illegal dumping", "garbage", "public drinking",
+        "gambling", "illegal construction", "street harassment",
+        "ಸಾರ್ವಜನಿಕ ಕಿರುಕುಳ", "ಶಬ್ದ ಮಾಲಿನ್ಯ", "ಕಸ ಸುರಿಯುವುದು", "ಅಕ್ರಮ ಜೂಜು", "ಕಿರಿಕಿರಿ"
+    ],
+    "Corruption & Police Misconduct": [
+        "corruption", "bribe", "bribery", "extortion by official", "police harassment",
+        "illegal detention", "refusal to register", "misconduct",
+        "ಲಂಚ", "ಭ್ರಷ್ಟಾಚಾರ", "ಅಧಿಕಾರ ದುರುಪಯೋಗ", "ಅನಗತ್ಯ ಕಿರುಕುಳ"
+    ],
+    # Legacy aliases
+    "Financial Fraud": ["fraud", "bank", "upi", "scam", "ವಂಚನೆ", "ಹಣ"],
+    "Lost Property": ["lost", "missing", "ಕಳೆದುಹೋದ"],
+    "Traffic & Public Safety": ["traffic", "accident", "ರಸ್ತೆ"],
+    "Complaints Involving Individuals": ["dispute", "fight", "harassment", "ಜಗಳ", "ಕಿರುಕುಳ"]
 }
 
 # Priority indicators
@@ -169,35 +211,43 @@ def call_gemini_api(
 
         client = genai.Client(api_key=GEMINI_API_KEY)
 
-        prompt = f"""You are the AI triage assistant for CIVANTA - Karnataka State Police Grievance Management System.
-Analyze the following citizen complaint statement.
+        prompt = f"""You are the expert AI triage assistant for CIVANTA - Karnataka State Police (KSP) Grievance Management System.
+Thoroughly analyze the following citizen complaint statement and any accompanying digital evidence.
+Accurately determine the true statutory grievance category and urgent priority level based on the grievance facts.
 
 Complaint Title: {title}
 Complaint Text:
 {text}
 
-Allowed Categories (choose EXACTLY ONE):
-- Cybercrime
-- Financial Fraud
-- Lost Property
-- Traffic & Public Safety
-- Complaints Involving Individuals
+Statutory Police Grievance Categories (select the SINGLE most precise category):
+1. Cybercrime (online hacking, phishing, OTP compromise, malware, ransomware, social media extortion, fake profiles, deepfakes)
+2. Financial Fraud & Scams (UPI scams, bank fraud, fake investment/crypto schemes, loan app harassment, counterfeit, Ponzi schemes)
+3. Women & Child Safety (stalking, sexual harassment, workplace POSH, domestic abuse, dowry harassment, eve-teasing, POCSO concerns)
+4. Theft & Burglary (house burglary, chain snatching, vehicle theft, shoplifting, pickpocketing, stolen valuables)
+5. Lost & Found Property (lost mobile phone/CEIR, misplaced wallet, lost original certificates, lost passport/Aadhaar/PAN, lost baggage)
+6. Traffic & Road Safety (road accidents, hit & run, dangerous overspeeding, drunk driving, road rage, signal defects, road hazards)
+7. Assault & Violent Crimes (physical fight, gang violence, grievous hurt, threats to life, deadly weapons, assault)
+8. Narcotics & Illegal Substances (substance peddling, illegal drugs/ganja, contraband supply, illegal liquor distribution)
+9. Missing Persons & Runaways (missing child, missing adult, untraceable family member, suspected abduction)
+10. Property & Land Disputes (illegal land encroachment, tenant/landlord eviction threats, forged property papers, boundary disputes)
+11. Public Nuisance & Civic Grievances (loudspeaker/noise pollution, illegal garbage dumping, public drinking, street disturbance)
+12. Corruption & Police Misconduct (bribery demand, extortion by officials, police inaction or refusal to register grievance)
 
-Allowed Priorities (choose EXACTLY ONE):
-- Urgent (Immediate threat to life, active golden-hour bank fraud, kidnapping)
-- High (Major fraud >50k, physical violence threat, stolen vehicle)
-- Medium (Standard disputes, minor cyber issues, civic traffic)
-- Low (Lost certificates, minor property)
+Priority Assessment:
+- Urgent: Active golden hour financial fraud, immediate threat to life/violence, kidnapping, missing child.
+- High: Major theft/fraud, severe harassment/stalking, bodily injury, stolen vehicle.
+- Medium: Standard property/neighbor disputes, civic nuisance, non-immediate cyber issues.
+- Low: Lost certificates, general lost property documents, minor queries.
 
 Output strictly valid JSON with this exact structure:
 {{
   "language": "kn" or "en",
   "original_text": "{text.replace('\"', '\\\"')}",
   "english_text": "<Full and accurate English translation if Kannada, or same text if English>",
-  "category": "<Exact category from the list above>",
-  "priority": "<Exact priority from the list above>",
-  "confidence": <float between 0.70 and 0.99>,
-  "summary": "<1-2 concise sentences summarizing the grievance in English>",
+  "category": "<Exact category name from the 12 categories above>",
+  "priority": "<Exact priority from Urgent, High, Medium, or Low>",
+  "confidence": 0.95,
+  "summary": "<1-2 concise sentences summarizing the grievance in administrative English>",
   "duplicate_of": null
 }}
 """
