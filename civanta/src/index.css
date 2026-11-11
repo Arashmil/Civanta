@@ -94,23 +94,9 @@
     font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
     -webkit-font-smoothing: antialiased;
-    font-size: 1.5rem;
+    font-size: 1rem;
     line-height: 1.5;
     overflow-x: hidden;
-  }
-
-  /* 50% font scale overrides for arbitrary pixel badges and metadata labels */
-  .text-\[9px\] {
-    font-size: 13.5px !important;
-    line-height: 1.25rem !important;
-  }
-  .text-\[10px\] {
-    font-size: 15px !important;
-    line-height: 1.35rem !important;
-  }
-  .text-\[11px\] {
-    font-size: 16.5px !important;
-    line-height: 1.45rem !important;
   }
 
   code, pre, .font-mono {
