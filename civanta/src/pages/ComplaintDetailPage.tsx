@@ -12,6 +12,7 @@ import { ResolutionModal } from '../components/complaints/ResolutionModal';
 import { FeedbackModal } from '../components/complaints/FeedbackModal';
 import { ReopenModal } from '../components/complaints/ReopenModal';
 import { api } from '../services/api';
+import { TranslationService } from '../services/translator';
 import { SLACountdown } from '../components/common/SLACountdown';
 import { EscalationLadderStepper } from '../components/complaints/EscalationLadderStepper';
 import { LocationTrackingRadar } from '../components/common/LocationTrackingRadar';
@@ -37,6 +38,8 @@ import {
   Printer,
   Sparkles,
   Star,
+  Languages,
+  Globe,
   X
 } from 'lucide-react';
 
@@ -88,6 +91,33 @@ export const ComplaintDetailPage: React.FC<ComplaintDetailPageProps> = ({
   const isAssignedToMe = complaint.assignedOfficerId === currentUser?.id;
   const isSupervisor = role === 'senior_supervisor' || role === 'admin';
   const isCitizenOwner = complaint.citizen.email === currentUser?.email || role === 'citizen';
+
+  // On-Demand Translation state
+  const isKnOriginal = complaint.originalLanguage === 'kn' || /[\u0C80-\u0CFF]/.test(complaint.description);
+  const [translationView, setTranslationView] = useState<'original' | 'translated' | 'dual'>('original');
+  const [translatedContent, setTranslatedContent] = useState<string | null>(
+    isKnOriginal ? (complaint.description && complaint.titleKannada ? complaint.description : null) : (complaint.descriptionKannada || null)
+  );
+  const [isTranslating, setIsTranslating] = useState<boolean>(false);
+
+  const handleTranslateOnDemand = async () => {
+    if (translatedContent) {
+      setTranslationView(prev => (prev === 'original' ? 'translated' : 'original'));
+      return;
+    }
+    setIsTranslating(true);
+    try {
+      const sourceLang = isKnOriginal ? 'kn' : 'en';
+      const targetLang = isKnOriginal ? 'en' : 'kn';
+      const res = await TranslationService.translateText(complaint.description, sourceLang, targetLang);
+      setTranslatedContent(res.translatedText);
+      setTranslationView('translated');
+    } catch (err) {
+      console.warn('On-demand translation failed:', err);
+    } finally {
+      setIsTranslating(false);
+    }
+  };
 
   const handlePrint = () => {
     window.print();
@@ -445,14 +475,109 @@ export const ComplaintDetailPage: React.FC<ComplaintDetailPageProps> = ({
           {/* Incident Location & Real-Time Field Dispatch Radar Card */}
           <LocationTrackingRadar complaint={complaint} />
 
-          {/* Incident Description */}
-          <div className={`p-4 ${tokens.cardClass} space-y-2`}>
-            <h3 className="font-bold text-xs uppercase tracking-wider text-slate-700 dark:text-slate-300 pb-1.5 border-b border-slate-100 dark:border-slate-800">
-              {t('Grievance Statement')}
-            </h3>
-            <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line">
-              {complaint.description}
-            </p>
+          {/* Incident Description with On-Demand Translation */}
+          <div className={`p-4 ${tokens.cardClass} space-y-3`}>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800 gap-2">
+              <div className="flex items-center gap-2">
+                <h3 className="font-bold text-xs uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                  {t('Grievance Statement')}
+                </h3>
+                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                  {isKnOriginal ? 'Original: ಕನ್ನಡ (Kannada)' : 'Original: English'}
+                </span>
+              </div>
+
+              {/* On-Demand Translation Controls */}
+              <div className="flex items-center gap-1.5 self-start sm:self-auto">
+                {translatedContent ? (
+                  <div className="inline-flex rounded-[4px] border border-slate-200 dark:border-slate-700 p-0.5 bg-slate-100 dark:bg-slate-800 text-[11px]">
+                    <button
+                      type="button"
+                      onClick={() => setTranslationView('original')}
+                      className={`px-2 py-0.5 rounded-[3px] font-medium transition-colors cursor-pointer ${
+                        translationView === 'original'
+                          ? 'bg-white dark:bg-slate-700 text-police-900 dark:text-white shadow-xs font-semibold'
+                          : 'text-slate-600 dark:text-slate-400'
+                      }`}
+                    >
+                      Original
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTranslationView('translated')}
+                      className={`px-2 py-0.5 rounded-[3px] font-medium transition-colors cursor-pointer ${
+                        translationView === 'translated'
+                          ? 'bg-white dark:bg-slate-700 text-police-900 dark:text-white shadow-xs font-semibold'
+                          : 'text-slate-600 dark:text-slate-400'
+                      }`}
+                    >
+                      {isKnOriginal ? 'English Translation' : 'ಕನ್ನಡ ಅನುವಾದ'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTranslationView('dual')}
+                      className={`px-2 py-0.5 rounded-[3px] font-medium transition-colors cursor-pointer ${
+                        translationView === 'dual'
+                          ? 'bg-white dark:bg-slate-700 text-police-900 dark:text-white shadow-xs font-semibold'
+                          : 'text-slate-600 dark:text-slate-400'
+                      }`}
+                    >
+                      Side-by-Side
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleTranslateOnDemand}
+                    disabled={isTranslating}
+                    className="px-2.5 py-1 rounded-[4px] bg-police-700 hover:bg-police-800 text-white text-[11px] font-semibold flex items-center gap-1.5 cursor-pointer transition-colors shadow-xs disabled:opacity-50"
+                  >
+                    <Languages size={12} className={isTranslating ? 'animate-spin' : ''} />
+                    <span>
+                      {isTranslating
+                        ? (language === 'kn' ? 'ಅನುವಾದಿಸಲಾಗುತ್ತಿದೆ...' : 'Translating...')
+                        : (isKnOriginal ? 'Translate to English' : 'ಕನ್ನಡಕ್ಕೆ ಅನುವಾದಿಸಿ (Translate to Kannada)')}
+                    </span>
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Display Statement based on View Mode */}
+            {translationView === 'dual' && translatedContent ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                <div className="p-3 rounded-[6px] border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-850/50 space-y-1">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 font-mono">
+                    {isKnOriginal ? 'ಕನ್ನಡ ಮೂಲ ದಾಖಲೆ (Original)' : 'Original English Dossier'}
+                  </span>
+                  <p className="text-xs text-slate-800 dark:text-slate-200 leading-relaxed whitespace-pre-line">
+                    {complaint.description}
+                  </p>
+                </div>
+                <div className="p-3 rounded-[6px] border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-850/50 space-y-1">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-police-700 dark:text-police-400 font-mono">
+                    {isKnOriginal ? 'English Translation' : 'ಕನ್ನಡ ಅನುವಾದ (Translated)'}
+                  </span>
+                  <p className="text-xs text-slate-800 dark:text-slate-200 leading-relaxed whitespace-pre-line">
+                    {translatedContent}
+                  </p>
+                </div>
+              </div>
+            ) : translationView === 'translated' && translatedContent ? (
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-1.5 text-[10px] text-police-700 dark:text-police-400 font-mono font-semibold">
+                  <Globe size={11} />
+                  <span>{isKnOriginal ? 'English Administrative Translation:' : 'ಕನ್ನಡ ಅಧಿಕೃತ ಅನುವಾದ:'}</span>
+                </div>
+                <p className="text-xs text-slate-800 dark:text-slate-200 leading-relaxed whitespace-pre-line bg-slate-50 dark:bg-slate-850/50 p-3 rounded-[6px] border border-slate-200 dark:border-slate-800">
+                  {translatedContent}
+                </p>
+              </div>
+            ) : (
+              <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line">
+                {complaint.description}
+              </p>
+            )}
           </div>
 
           {/* Investigation Remarks Log */}

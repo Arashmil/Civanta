@@ -4,7 +4,6 @@ import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { AIClassifierService } from '../services/aiClassifier';
 import { TranslationService } from '../services/translator';
-import { VoiceInputButton } from '../components/voice/VoiceInputButton';
 import { ComplaintCategory, PriorityLevel, Complaint } from '../types';
 import { tokens } from '../tokens';
 import {
@@ -58,50 +57,86 @@ export const NewComplaintPage: React.FC<NewComplaintPageProps> = ({
   const [city, setCity] = useState('Bengaluru');
   const [district, setDistrict] = useState('Bengaluru Urban');
   const [pinCode, setPinCode] = useState('560011');
-  const [latitude, setLatitude] = useState<number>(12.9308);
-  const [longitude, setLongitude] = useState<number>(77.5838);
+  const [latitude, setLatitude] = useState<number>(12.9716);
+  const [longitude, setLongitude] = useState<number>(77.5946);
   const [isDetectingLocation, setIsDetectingLocation] = useState(false);
-  const [nearestStation, setNearestStation] = useState('Jayanagar 4th Block Police Station (0.9 km away)');
-  const [locationTagged, setLocationTagged] = useState(true);
+  const [nearestStation, setNearestStation] = useState('Central Police Station (Jurisdictional Division)');
+  const [locationTagged, setLocationTagged] = useState(false);
+  const [locationStatus, setLocationStatus] = useState<string>('');
 
   const handleDetectLocation = () => {
     setIsDetectingLocation(true);
-    if (typeof navigator !== 'undefined' && navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        pos => {
-          const lat = parseFloat(pos.coords.latitude.toFixed(4));
-          const lng = parseFloat(pos.coords.longitude.toFixed(4));
-          setLatitude(lat);
-          setLongitude(lng);
-          setAddress(`GPS Incident Marker (${lat}° N, ${lng}° E)`);
-          setNearestStation(`Central Cyber & Law Enforcement Unit (${(Math.random() * 1.2 + 0.6).toFixed(1)} km away)`);
-          setLocationTagged(true);
-          setIsDetectingLocation(false);
-        },
-        () => {
-          // Fallback realistic Bengaluru coordinates
-          const samples = [
-            { lat: 12.9716, lng: 77.5946, addr: 'MG Road Metro Station, Central Bengaluru', landmark: 'Opposite Plaza Theatre', station: 'Cubbon Park Police Station (1.1 km away)', pin: '560001' },
-            { lat: 12.9352, lng: 77.6245, addr: '80 Feet Road, Koramangala 4th Block', landmark: 'Sony World Junction', station: 'Koramangala CCPS Police Station (0.8 km away)', pin: '560034' },
-            { lat: 12.9784, lng: 77.6408, addr: '100 Feet Road, Indiranagar', landmark: 'Near 12th Main Junction', station: 'Indiranagar Police Station (1.2 km away)', pin: '560038' },
-            { lat: 12.9308, lng: 77.5838, addr: '9th Main, Jayanagar 4th Block', landmark: 'Near Shopping Complex', station: 'Jayanagar Police Station (0.9 km away)', pin: '560011' },
-            { lat: 12.9698, lng: 77.7499, addr: 'ITPL Main Road, Whitefield', landmark: 'Near Hope Farm Junction', station: 'Whitefield Police Station (1.5 km away)', pin: '560066' }
-          ];
-          const pick = samples[Math.floor(Math.random() * samples.length)];
-          setLatitude(pick.lat);
-          setLongitude(pick.lng);
-          setAddress(pick.addr);
-          setLandmark(pick.landmark);
-          setNearestStation(pick.station);
-          setPinCode(pick.pin);
-          setLocationTagged(true);
-          setIsDetectingLocation(false);
-        },
-        { timeout: 4000 }
-      );
-    } else {
+    setLocationStatus(t('Requesting browser location permission...') || 'Requesting browser location permission...');
+
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      alert('Geolocation is not supported by your browser.');
       setIsDetectingLocation(false);
+      setLocationStatus('Geolocation unsupported');
+      return;
     }
+
+    navigator.geolocation.getCurrentPosition(
+      async pos => {
+        const lat = parseFloat(pos.coords.latitude.toFixed(5));
+        const lng = parseFloat(pos.coords.longitude.toFixed(5));
+        const accuracy = Math.round(pos.coords.accuracy || 10);
+        setLatitude(lat);
+        setLongitude(lng);
+        setLocationTagged(true);
+        setLocationStatus(`GPS locked (±${accuracy}m accuracy). Resolving address...`);
+
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`,
+            { headers: { 'Accept-Language': 'en' } }
+          );
+          if (res.ok) {
+            const data = await res.json();
+            const addrObj = data.address || {};
+            const road = addrObj.road || addrObj.suburb || addrObj.neighbourhood || addrObj.residential || '';
+            const detectedCity = addrObj.city || addrObj.town || addrObj.village || addrObj.municipality || 'Bengaluru';
+            const detectedDistrict = addrObj.state_district || addrObj.county || 'Bengaluru Urban';
+            const detectedPin = addrObj.postcode || '';
+
+            const parts = [road, addrObj.suburb, detectedCity].filter(Boolean);
+            const formattedAddr = parts.length > 0 ? parts.join(', ') : (data.display_name ? data.display_name.split(',').slice(0, 3).join(', ') : `Location at ${lat}° N, ${lng}° E`);
+
+            setAddress(formattedAddr);
+            if (road) setLandmark(`Near ${road}`);
+            if (detectedCity) setCity(detectedCity);
+            if (detectedDistrict) setDistrict(detectedDistrict);
+            if (detectedPin) setPinCode(detectedPin);
+            setNearestStation(`${detectedCity} Jurisdictional Police Station (~1.2 km away)`);
+            setLocationStatus(`Live location locked: ${formattedAddr}`);
+          } else {
+            setAddress(`GPS Incident Marker (${lat}° N, ${lng}° E)`);
+            setLocationStatus(`GPS locked at ${lat}° N, ${lng}° E`);
+          }
+        } catch {
+          setAddress(`GPS Incident Marker (${lat}° N, ${lng}° E)`);
+          setLocationStatus(`GPS locked at ${lat}° N, ${lng}° E`);
+        } finally {
+          setIsDetectingLocation(false);
+        }
+      },
+      error => {
+        console.warn('Geolocation error:', error);
+        setIsDetectingLocation(false);
+        let msg = 'Could not detect location. Please allow browser location access.';
+        if (error.code === error.PERMISSION_DENIED) {
+          msg = 'Location permission was denied. Please allow location permissions in your browser address bar.';
+        } else if (error.code === error.TIMEOUT) {
+          msg = 'GPS satellite request timed out. Please click "Detect Location" again.';
+        }
+        setLocationStatus(msg);
+        alert(msg);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 30000
+      }
+    );
   };
 
   const [citizenName, setCitizenName] = useState(currentUser?.name || 'Ramesh Gowda');
@@ -269,12 +304,12 @@ export const NewComplaintPage: React.FC<NewComplaintPageProps> = ({
           Register Police Grievance
         </h1>
         <p className="text-xs text-slate-200 dark:text-slate-300">
-          Supports Kannada and English. Kannada submissions undergo real-time bilingual translation with AI-suggested category and priority ratings.
+          File your grievance directly in English or Kannada. Your original statement is recorded as official record, with on-demand bilingual translation available in the case file dossier.
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Preferred Language & Voice Toolbar */}
+        {/* Preferred Language Toolbar */}
         <div className={`p-3 ${tokens.cardClass} flex flex-col sm:flex-row sm:items-center justify-between gap-3`}>
           <div className="flex items-center gap-2">
             <Languages size={15} className="text-police-600 dark:text-police-400" />
@@ -307,14 +342,8 @@ export const NewComplaintPage: React.FC<NewComplaintPageProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <VoiceInputButton
-              language={preferredLang}
-              onTranscript={text => {
-                if (!title) setTitle(text.slice(0, 60));
-                setDescription(prev => (prev ? `${prev} ${text}` : text));
-              }}
-            />
+          <div className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">
+            {preferredLang === 'kn' ? 'ಕನ್ನಡದಲ್ಲಿ ದೂರು ದಾಖಲಿಸಲಾಗುತ್ತಿದೆ' : 'Drafting official grievance in English'}
           </div>
         </div>
 
@@ -487,6 +516,14 @@ export const NewComplaintPage: React.FC<NewComplaintPageProps> = ({
               <ArrowRight size={11} />
             </a>
           </div>
+
+          {/* Live Status Message */}
+          {locationStatus && (
+            <div className="p-2 rounded-[4px] bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800 text-[11px] text-sky-800 dark:text-sky-300 flex items-center gap-1.5 font-mono">
+              <Compass size={12} className="text-sky-600 shrink-0" />
+              <span>{locationStatus}</span>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
