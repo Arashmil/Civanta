@@ -210,6 +210,20 @@ export interface Complaint {
   feedback?: ComplaintFeedback;
   reopenReason?: string;
   reopenedAt?: string;
+
+  // Real-world demonstration case metadata
+  isIrlCase?: boolean;
+  firNumber?: string;
+  subCategory?: string;
+  specializedUnit?: string;
+  applicableLaws?: string[];
+  evidenceItems?: string[];
+  financialLossInr?: number;
+  amountFrozenInr?: number;
+  severity?: string;
+  supervisingOfficerName?: string;
+  supervisingOfficerRank?: string;
+  supervisingOfficerUnit?: string;
 }
 
 export interface Officer {

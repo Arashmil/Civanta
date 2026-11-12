@@ -156,9 +156,16 @@ export const TrackComplaintPage: React.FC<TrackComplaintPageProps> = ({
         </form>
 
         {/* Quick Suggestion Pills */}
-        <div className="flex flex-wrap items-center gap-2 pt-1 text-[11px] text-slate-300">
+        <div className="flex flex-wrap items-center gap-1.5 pt-1 text-[11px] text-slate-300">
           <span className="font-mono text-[10px] text-slate-400">Quick Samples:</span>
-          {['KA-CYB-2026-0001', 'KA-FIN-2026-0002', 'KA-LST-2026-0003', 'KA-TRF-2026-0004'].map(demoId => (
+          {[
+            'KSP-2026-CYB-001',
+            'KSP-2026-CYB-002',
+            'KSP-SIT-EOW-003',
+            'KSP-2025-WOM-004',
+            'LOK-2026-COR-008',
+            'KA-CYB-2026-0001'
+          ].map(demoId => (
             <button
               key={demoId}
               type="button"
@@ -171,7 +178,7 @@ export const TrackComplaintPage: React.FC<TrackComplaintPageProps> = ({
                   handleSearch({ preventDefault: () => {} } as any);
                 }
               }}
-              className="font-mono text-[11px] underline hover:text-amber-300 cursor-pointer text-slate-300"
+              className="font-mono text-[11px] px-2 py-0.5 rounded bg-police-800/80 hover:bg-police-700 hover:text-amber-300 cursor-pointer text-slate-200 border border-police-700 transition-colors"
             >
               {demoId}
             </button>
@@ -196,10 +203,20 @@ export const TrackComplaintPage: React.FC<TrackComplaintPageProps> = ({
           <div className={`p-4 ${tokens.cardClass} space-y-3`}>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-100 dark:border-slate-800">
               <div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <span className="font-mono text-base font-bold text-police-700 dark:text-police-400">
                     {searchedComplaint.id}
                   </span>
+                  {searchedComplaint.firNumber && (
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-[4px] bg-red-100 text-red-800 dark:bg-red-950/60 dark:text-red-300 border border-red-300 dark:border-red-800 font-bold">
+                      FIR: {searchedComplaint.firNumber}
+                    </span>
+                  )}
+                  {searchedComplaint.isIrlCase && (
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-[4px] bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-300 dark:border-blue-800 font-semibold">
+                      KSP CASE
+                    </span>
+                  )}
                   <StatusBadge status={searchedComplaint.status} size="sm" />
                   <PriorityBadge priority={searchedComplaint.priority} size="sm" />
                 </div>

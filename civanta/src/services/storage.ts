@@ -37,7 +37,16 @@ export class StorageService {
       return INITIAL_COMPLAINTS;
     }
     try {
-      return JSON.parse(data);
+      const parsed: Complaint[] = JSON.parse(data);
+      // Ensure all initial complaints (including real-world demonstration cases) are present
+      const existingIds = new Set(parsed.map(c => c.id));
+      const missing = INITIAL_COMPLAINTS.filter(c => !existingIds.has(c.id));
+      if (missing.length > 0) {
+        const merged = [...missing, ...parsed];
+        this.saveComplaints(merged);
+        return merged;
+      }
+      return parsed;
     } catch {
       return INITIAL_COMPLAINTS;
     }
