@@ -5,6 +5,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { AIClassifierService } from '../services/aiClassifier';
 import { TranslationService } from '../services/translator';
 import { VoiceInputButton } from '../components/voice/VoiceInputButton';
+import { PoliceJurisdictionService, AIJurisdictionResult, KARNATAKA_POLICE_DIVISIONS } from '../services/policeJurisdictionService';
 import { ComplaintCategory, PriorityLevel, Complaint } from '../types';
 import { tokens } from '../tokens';
 import {
@@ -104,6 +105,8 @@ export const NewComplaintPage: React.FC<NewComplaintPageProps> = ({
   const [nearestStation, setNearestStation] = useState('Central Police Station (Jurisdictional Division)');
   const [locationTagged, setLocationTagged] = useState(false);
   const [locationStatus, setLocationStatus] = useState<string>('');
+  const [aiJurisdiction, setAiJurisdiction] = useState<AIJurisdictionResult | null>(null);
+  const [isResolvingJurisdiction, setIsResolvingJurisdiction] = useState(false);
 
   const handleDetectLocation = () => {
     setIsDetectingLocation(true);
@@ -131,27 +134,54 @@ export const NewComplaintPage: React.FC<NewComplaintPageProps> = ({
             `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`,
             { headers: { 'Accept-Language': 'en' } }
           );
+          let road = '';
+          let detectedCity = 'Bengaluru';
+          let detectedDistrict = 'Bengaluru Urban';
+          let detectedPin = '';
+          let formattedAddr = `Location at ${lat}° N, ${lng}° E`;
+
           if (res.ok) {
             const data = await res.json();
             const addrObj = data.address || {};
-            const road = addrObj.road || addrObj.suburb || addrObj.neighbourhood || addrObj.residential || '';
-            const detectedCity = addrObj.city || addrObj.town || addrObj.village || addrObj.municipality || 'Bengaluru';
-            const detectedDistrict = addrObj.state_district || addrObj.county || 'Bengaluru Urban';
-            const detectedPin = addrObj.postcode || '';
+            road = addrObj.road || addrObj.suburb || addrObj.neighbourhood || addrObj.residential || '';
+            detectedCity = addrObj.city || addrObj.town || addrObj.village || addrObj.municipality || 'Bengaluru';
+            detectedDistrict = addrObj.state_district || addrObj.county || 'Bengaluru Urban';
+            detectedPin = addrObj.postcode || '';
 
             const parts = [road, addrObj.suburb, detectedCity].filter(Boolean);
-            const formattedAddr = parts.length > 0 ? parts.join(', ') : (data.display_name ? data.display_name.split(',').slice(0, 3).join(', ') : `Location at ${lat}° N, ${lng}° E`);
+            formattedAddr = parts.length > 0 ? parts.join(', ') : (data.display_name ? data.display_name.split(',').slice(0, 3).join(', ') : `Location at ${lat}° N, ${lng}° E`);
 
             setAddress(formattedAddr);
             if (road) setLandmark(`Near ${road}`);
             if (detectedCity) setCity(detectedCity);
-            if (detectedDistrict) setDistrict(detectedDistrict);
             if (detectedPin) setPinCode(detectedPin);
-            setNearestStation(`${detectedCity} Jurisdictional Police Station (~1.2 km away)`);
-            setLocationStatus(`Live location locked: ${formattedAddr}`);
           } else {
             setAddress(`GPS Incident Marker (${lat}° N, ${lng}° E)`);
-            setLocationStatus(`GPS locked at ${lat}° N, ${lng}° E`);
+          }
+
+          // Trigger AI Police District & Division Determination
+          setIsResolvingJurisdiction(true);
+          setLocationStatus('AI analyzing Karnataka State Police jurisdictional GIS division...');
+          try {
+            const jurisdictionResult = await PoliceJurisdictionService.determineJurisdiction({
+              latitude: lat,
+              longitude: lng,
+              address: formattedAddr,
+              road,
+              city: detectedCity,
+              district: detectedDistrict,
+              pinCode: detectedPin
+            });
+
+            setAiJurisdiction(jurisdictionResult);
+            setDistrict(jurisdictionResult.policeDistrictOrDivision);
+            setNearestStation(`${jurisdictionResult.jurisdictionalStation} (${jurisdictionResult.subDivision})`);
+            setLocationStatus(`AI Determined: ${jurisdictionResult.policeDistrictOrDivision} • ${jurisdictionResult.jurisdictionalStation}`);
+          } catch (jErr) {
+            console.warn('AI jurisdiction determination error:', jErr);
+            setLocationStatus(`Live location locked: ${formattedAddr}`);
+          } finally {
+            setIsResolvingJurisdiction(false);
           }
         } catch {
           setAddress(`GPS Incident Marker (${lat}° N, ${lng}° E)`);
@@ -649,6 +679,45 @@ export const NewComplaintPage: React.FC<NewComplaintPageProps> = ({
             </div>
           )}
 
+          {/* AI Police Jurisdiction & Division Assessment Card */}
+          {aiJurisdiction && (
+            <div className="p-3 rounded-[6px] bg-gradient-to-r from-blue-50/80 to-indigo-50/80 dark:from-slate-850 dark:to-slate-900 border border-police-300 dark:border-police-700/80 text-xs space-y-2 animate-in fade-in slide-in-from-top-1">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <span className="font-semibold text-police-950 dark:text-white flex items-center gap-1.5">
+                  <Sparkles size={14} className="text-police-600 dark:text-amber-400" />
+                  AI Police Jurisdiction & Division Intelligence
+                </span>
+                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-[4px] bg-amber-100 dark:bg-amber-950/80 text-amber-900 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
+                  {preferredLang === 'kn' ? '[ಸೂಚಿಸಲಾಗಿದೆ. ತನಿಖಾಧಿಕಾರಿ ದೃಢಪಡಿಸಬೇಕು.]' : '[Suggested. Officer must confirm.]'}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                <div className="p-2 rounded-[4px] bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700">
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono block">Determined Police Division / District</span>
+                  <p className="font-bold text-police-900 dark:text-police-300">
+                    {aiJurisdiction.policeDistrictOrDivision}
+                  </p>
+                  <span className="text-[10px] text-slate-500 font-mono">{aiJurisdiction.policeRange}</span>
+                </div>
+                <div className="p-2 rounded-[4px] bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700">
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono block">Jurisdictional Police Station & Sub-Division</span>
+                  <p className="font-bold text-emerald-800 dark:text-emerald-300">
+                    {aiJurisdiction.jurisdictionalStation}
+                  </p>
+                  <span className="text-[10px] text-slate-500 font-mono">{aiJurisdiction.subDivision}</span>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-1.5 text-[11px] text-slate-700 dark:text-slate-300 bg-white/50 dark:bg-slate-800/50 p-2 rounded-[4px] border border-slate-200 dark:border-slate-700/60">
+                <Shield size={13} className="text-police-700 dark:text-police-400 shrink-0 mt-0.5" />
+                <p className="leading-relaxed">
+                  <strong>GIS Rationale:</strong> {aiJurisdiction.rationale} <span className="font-mono text-slate-500">({aiJurisdiction.confidence}% confidence • {aiJurisdiction.source === 'ai_gemini' ? 'Gemini AI' : 'KSP GIS Engine'})</span>
+                </p>
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
@@ -665,18 +734,22 @@ export const NewComplaintPage: React.FC<NewComplaintPageProps> = ({
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Police Division / District
+                Police Division / District {aiJurisdiction && <span className="text-police-600 dark:text-sky-400 text-[10px] font-mono font-normal">(AI Mapped)</span>}
               </label>
               <select
                 value={district}
                 onChange={e => setDistrict(e.target.value)}
-                className="w-full text-xs rounded-[6px] border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-2 text-slate-900 dark:text-white"
+                className="w-full text-xs rounded-[6px] border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 p-2 font-medium text-slate-900 dark:text-white"
               >
-                <option value="Bengaluru Urban">Bengaluru Urban (City Limits)</option>
-                <option value="Bengaluru Rural">Bengaluru Rural</option>
-                <option value="Mysuru City">Mysuru City</option>
-                <option value="Mangaluru City">Mangaluru City</option>
-                <option value="Hubballi-Dharwad">Hubballi-Dharwad</option>
+                {/* Dynamically list Karnataka Police Divisions */}
+                {!KARNATAKA_POLICE_DIVISIONS.includes(district) && (
+                  <option value={district}>{district}</option>
+                )}
+                {KARNATAKA_POLICE_DIVISIONS.map(div => (
+                  <option key={div} value={div}>
+                    {div}
+                  </option>
+                ))}
               </select>
             </div>
           </div>

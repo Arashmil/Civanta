@@ -123,8 +123,15 @@ export class SpeechService {
           onError('Microphone permission was denied. Please allow microphone access in your browser settings, or choose a voice preset.');
         } else if (event.error === 'no-speech') {
           // quiet timeout, safe to ignore or keep open
+        } else if (event.error === 'network') {
+          // In Chrome on Windows, Google Speech cloud API throws 'network' when offline, behind a proxy, or blocked by browser shields
+          onError(
+            lang === 'kn'
+              ? 'ಬ್ರೌಸರ್ ನೆಟ್‌ವರ್ಕ್‌ನಲ್ಲಿ ಕ್ಲೌಡ್ ಧ್ವನಿ ಸಂಪರ್ಕ ಲಭ್ಯವಿಲ್ಲ (Google Speech ನಿರ್ಬಂಧ). ಧ್ವನಿ ಮಾದರಿ ಅಥವಾ ಡಿಕ್ಟೇಶನ್ ಸಹಾಯಕವನ್ನು ಕೆಳಗೆ ಬಳಸಿ.'
+              : 'Browser speech recognition network blocked by network/firewall. Voice presets and simulated dictation activated below.'
+          );
         } else {
-          onError(`Voice input error (${event.error}). You can also choose a voice preset.`);
+          onError(`Voice input notice (${event.error}). You can also choose a voice preset or dictate below.`);
         }
       };
 
@@ -153,5 +160,34 @@ export class SpeechService {
       }
       this.isListening = false;
     }
+  }
+
+  /**
+   * Word-by-word streaming dictation simulation for offline, restricted network, or demo mode
+   */
+  static simulateDictation(
+    text: string,
+    onProgress: (accumulated: string) => void,
+    onComplete: () => void
+  ): () => void {
+    const words = text.split(' ');
+    let currentIndex = 0;
+    let accumulated = '';
+    let intervalId: any = null;
+
+    intervalId = setInterval(() => {
+      if (currentIndex < words.length) {
+        accumulated += (accumulated ? ' ' : '') + words[currentIndex];
+        onProgress(accumulated);
+        currentIndex++;
+      } else {
+        clearInterval(intervalId);
+        onComplete();
+      }
+    }, 180);
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
   }
 }
