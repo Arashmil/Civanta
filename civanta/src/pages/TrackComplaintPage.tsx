@@ -163,8 +163,8 @@ export const TrackComplaintPage: React.FC<TrackComplaintPageProps> = ({
             'KSP-2026-CYB-002',
             'KSP-SIT-EOW-003',
             'KSP-2025-WOM-004',
-            'LOK-2026-COR-008',
-            'KA-CYB-2026-0001'
+            'KSP-2026-POC-006',
+            'LOK-2026-COR-008'
           ].map(demoId => (
             <button
               key={demoId}

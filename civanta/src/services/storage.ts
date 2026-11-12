@@ -38,15 +38,16 @@ export class StorageService {
     }
     try {
       const parsed: Complaint[] = JSON.parse(data);
-      // Ensure all initial complaints (including real-world demonstration cases) are present
-      const existingIds = new Set(parsed.map(c => c.id));
+      // Purge old simulated demo cases (CIV-2026-BLR-*) to keep only real Karnataka police cases and user complaints
+      const cleaned = parsed.filter(c => !c.id.startsWith('CIV-2026-BLR-'));
+      const existingIds = new Set(cleaned.map(c => c.id));
       const missing = INITIAL_COMPLAINTS.filter(c => !existingIds.has(c.id));
-      if (missing.length > 0) {
-        const merged = [...missing, ...parsed];
-        this.saveComplaints(merged);
-        return merged;
+      const finalComplaints = [...missing, ...cleaned];
+
+      if (finalComplaints.length !== parsed.length || missing.length > 0) {
+        this.saveComplaints(finalComplaints);
       }
-      return parsed;
+      return finalComplaints;
     } catch {
       return INITIAL_COMPLAINTS;
     }
@@ -114,7 +115,13 @@ export class StorageService {
       return INITIAL_ACTION_HISTORY;
     }
     try {
-      return JSON.parse(data);
+      const parsed: ActionHistoryEntry[] = JSON.parse(data);
+      // If cached history still references old simulated demo IDs, refresh with real-world case audit chain
+      if (parsed.some(e => e.complaintId.startsWith('CIV-2026-BLR-'))) {
+        this.saveActionHistory(INITIAL_ACTION_HISTORY);
+        return INITIAL_ACTION_HISTORY;
+      }
+      return parsed;
     } catch {
       return INITIAL_ACTION_HISTORY;
     }
@@ -131,7 +138,13 @@ export class StorageService {
       return INITIAL_NOTIFICATIONS;
     }
     try {
-      return JSON.parse(data);
+      const parsed: AppNotification[] = JSON.parse(data);
+      // If cached notifications reference old demo cases, update to real-world police cases
+      if (parsed.some(n => n.complaintId && n.complaintId.startsWith('CIV-2026-BLR-'))) {
+        this.saveNotifications(INITIAL_NOTIFICATIONS);
+        return INITIAL_NOTIFICATIONS;
+      }
+      return parsed;
     } catch {
       return INITIAL_NOTIFICATIONS;
     }

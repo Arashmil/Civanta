@@ -25,8 +25,8 @@ export const fallbackChatService = {
       }
     }
 
-    // 2. Check if a Complaint ID is mentioned (e.g. KA-CYB-2026-0001, CIV-2026-BLR-0101)
-    const caseMatch = message.match(/\b(KA-(?:CYB|FIN|LST|TRF|IND)-2026-\d{4}|CIV-2026-[A-Z]+-\d{4})\b/i);
+    // 2. Check if a Complaint ID is mentioned (e.g. KSP-2026-CYB-001, LOK-2026-COR-008)
+    const caseMatch = message.match(/\b(KSP-[A-Z0-9-]+|LOK-[A-Z0-9-]+|CIV-[A-Z0-9-]+|KA-[A-Z0-9-]+)\b/i);
     if (caseMatch) {
       const caseId = caseMatch[1].toUpperCase();
       const allComplaints = StorageService.getComplaints();

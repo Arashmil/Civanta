@@ -35,7 +35,7 @@ const AppContent: React.FC = () => {
   const { currentUser, currentRole } = useAuth();
   const { t } = useLanguage();
   const [currentPage, setCurrentPage] = useState<string>('landing');
-  const [selectedComplaintId, setSelectedComplaintId] = useState<string>('CIV-2026-BLR-0101');
+  const [selectedComplaintId, setSelectedComplaintId] = useState<string>('KSP-2026-CYB-001');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
