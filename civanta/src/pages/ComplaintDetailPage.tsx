@@ -1018,6 +1018,93 @@ export const ComplaintDetailPage: React.FC<ComplaintDetailPageProps> = ({
             </div>
           </div>
 
+          {/* Crime Statutory Penal Acts & Procedural Sections (Crime-Specific) */}
+          {(() => {
+            const framework = AIRoleAssistant.getStatutoryActsForCrime(complaint);
+            return (
+              <div className="p-3.5 rounded-[6px] bg-slate-900 border border-slate-700 text-white space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-800">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+                    <span className="font-bold text-xs uppercase tracking-wider text-amber-300">
+                      Statutory Offences & Applicable Acts (Case Binding)
+                    </span>
+                  </div>
+                  <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300">
+                    Crime Classification: <strong className="text-white">{framework.crimeCategory}</strong>
+                  </span>
+                </div>
+
+                {/* Penal Sections Grid */}
+                <div>
+                  <span className="text-[10px] uppercase font-mono tracking-wider text-slate-400 block mb-1.5 font-bold">
+                    Primary Penal Sanctions (BNS 2023 & Special Criminal Acts):
+                  </span>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    {framework.penalActs.map((penal, idx) => (
+                      <div key={idx} className="p-2.5 rounded bg-slate-950/80 border border-slate-800 space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="font-mono font-bold text-amber-400 text-xs">
+                            {penal.section}
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-mono">
+                            {penal.actName}
+                          </span>
+                        </div>
+                        <p className="font-semibold text-xs text-slate-100">
+                          {penal.offenceTitle}
+                        </p>
+                        <div className="flex flex-wrap items-center gap-2 pt-0.5 text-[10.5px]">
+                          <span className="text-rose-400 font-mono font-medium">
+                            {penal.classification}
+                          </span>
+                          <span className="text-slate-500">•</span>
+                          <span className="text-amber-200/90 font-mono">
+                            {penal.penalty}
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-slate-400 pt-1 border-t border-slate-800/80 font-mono">
+                          Mandate: {penal.investigationMandate}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Procedural Powers & Evidence Orders */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 border-t border-slate-800">
+                  <div className="p-2 rounded bg-slate-950/60 border border-slate-800 space-y-1 text-[11px]">
+                    <span className="font-mono font-bold text-sky-400 uppercase text-[10px] block">
+                      Statutory Investigative Powers (BNSS 2023):
+                    </span>
+                    <ul className="space-y-1 text-slate-300">
+                      {framework.proceduralActs.map((proc, idx) => (
+                        <li key={idx} className="flex items-start gap-1.5">
+                          <span className="text-sky-400 font-mono shrink-0">{proc.section}:</span>
+                          <span>{proc.power}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="p-2 rounded bg-slate-950/60 border border-slate-800 space-y-1 text-[11px]">
+                    <span className="font-mono font-bold text-emerald-400 uppercase text-[10px] block">
+                      Evidentiary Preservation Protocols:
+                    </span>
+                    <ul className="space-y-1 text-slate-300">
+                      {framework.preservationOrders.map((order, idx) => (
+                        <li key={idx} className="flex items-start gap-1.5">
+                          <span className="text-emerald-400 shrink-0">•</span>
+                          <span>{order}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
           {/* Loading Indicator */}
           {isGeneratingAICopilot && (
             <div className="p-8 text-center space-y-2 bg-slate-50 dark:bg-slate-800/40 rounded-[6px] border border-slate-200 dark:border-slate-800">

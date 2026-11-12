@@ -75,10 +75,431 @@ export async function callGemini(
   throw new Error('All Gemini models unavailable');
 }
 
+export interface CrimeStatuteDetail {
+  actName: string;
+  section: string;
+  offenceTitle: string;
+  classification: string;
+  penalty: string;
+  investigationMandate: string;
+}
+
+export interface CrimeLegalFramework {
+  crimeCategory: string;
+  penalActs: CrimeStatuteDetail[];
+  proceduralActs: Array<{ act: string; section: string; power: string }>;
+  preservationOrders: string[];
+}
+
 /**
  * AI Assistance Suite across all Police & Citizen Roles
  */
 export const AIRoleAssistant = {
+  /**
+   * Resolve Exact Statutory Acts & Sections according to Crime Committed
+   */
+  getStatutoryActsForCrime(complaint: Complaint): CrimeLegalFramework {
+    const rawCategory = (complaint.category || '') as string;
+    const text = `${complaint.title || ''} ${complaint.description || ''} ${rawCategory}`.toLowerCase();
+
+    // 1. Ponzi Scam / Economic Offence / Fraudulent Deposit Schemes
+    if (
+      text.includes('ponzi') ||
+      text.includes('chit fund') ||
+      text.includes('deposit') ||
+      text.includes('investor') ||
+      text.includes('kpid') ||
+      text.includes('islamic banking') ||
+      text.includes('ima') ||
+      text.includes('unregulated deposit')
+    ) {
+      return {
+        crimeCategory: 'Multi-Crore Economic Offence & Fraudulent Deposit Scheme',
+        penalActs: [
+          {
+            actName: 'KPID Act, 2004 (Karnataka Act 30 of 2004)',
+            section: 'Section 9',
+            offenceTitle: 'Fraudulent Default by Financial Establishment in Repayment of Deposits',
+            classification: 'Cognizable • Non-Bailable • Special Court Trial',
+            penalty: 'Imprisonment up to 6 Years & Fine up to ₹1 Lakh',
+            investigationMandate: 'Government gazette attachment of immovable assets and bank accounts'
+          },
+          {
+            actName: 'Bharatiya Nyaya Sanhita, 2023 (BNS)',
+            section: 'Section 316(5)',
+            offenceTitle: 'Criminal Breach of Trust by Public Servant, Banker, Merchant or Agent',
+            classification: 'Cognizable • Non-Bailable',
+            penalty: 'Imprisonment for Life or up to 10 Years & Fine',
+            investigationMandate: 'Forensic audit of corporate ledgers and shell companies'
+          },
+          {
+            actName: 'Banning of Unregulated Deposit Schemes (BUDS) Act, 2019',
+            section: 'Section 21',
+            offenceTitle: 'Soliciting or Operating Unregulated Deposit Schemes',
+            classification: 'Cognizable • Non-Bailable',
+            penalty: 'Imprisonment from 2 to 7 Years & Fine up to ₹10 Lakhs',
+            investigationMandate: 'Notice to RBI and SEBI market regulatory desks'
+          }
+        ],
+        proceduralActs: [
+          {
+            act: 'KPID Act 2004',
+            section: 'Section 3 & 4',
+            power: 'Provisional attachment of properties belonging to promoters and directors'
+          },
+          {
+            act: 'BNSS 2023',
+            section: 'Section 106',
+            power: 'Seizure of bank vaults, gold reserves, and bullion holdings'
+          }
+        ],
+        preservationOrders: [
+          'Sub-Registrar Caveat on all promoter real estate land deeds',
+          'Bank Forensic Audit of MCA filings and audited balance sheets',
+          'Affidavits of Claim from affected public depositors'
+        ]
+      };
+    }
+
+    // 2. Cybercrime & Financial Fraud / Digital Arrest
+    if (
+      rawCategory === 'Cybercrime' ||
+      rawCategory === 'Financial Fraud & Scams' ||
+      rawCategory === 'Financial Fraud' ||
+      rawCategory === 'Online Payment Fraud' ||
+      text.includes('cyber') ||
+      text.includes('digital arrest') ||
+      text.includes('cbi') ||
+      text.includes('escrow') ||
+      text.includes('otp') ||
+      text.includes('upi') ||
+      text.includes('phishing') ||
+      text.includes('fraud') ||
+      text.includes('scam')
+    ) {
+      return {
+        crimeCategory: 'Cybercrime & Financial Fraud Syndicate',
+        penalActs: [
+          {
+            actName: 'Bharatiya Nyaya Sanhita, 2023 (BNS)',
+            section: 'Section 318(4)',
+            offenceTitle: 'Cheating & Dishonestly Inducing Delivery of Property',
+            classification: 'Cognizable • Non-Bailable • Magistrate First Class',
+            penalty: 'Rigorous Imprisonment up to 7 Years & Fine',
+            investigationMandate: 'Immediate attachment of siphoned proceeds'
+          },
+          {
+            actName: 'Bharatiya Nyaya Sanhita, 2023 (BNS)',
+            section: 'Section 319(2)',
+            offenceTitle: 'Cheating by Personation (Impersonating Public Servants)',
+            classification: 'Cognizable • Non-Bailable',
+            penalty: 'Imprisonment up to 5 Years & Fine',
+            investigationMandate: 'Identify VOIP spoofing and fake uniform credentials'
+          },
+          {
+            actName: 'Bharatiya Nyaya Sanhita, 2023 (BNS)',
+            section: 'Section 308',
+            offenceTitle: 'Extortion by Putting Person in Fear of Death or Grievous Hurt / Arrest',
+            classification: 'Cognizable • Non-Bailable',
+            penalty: 'Imprisonment up to 7 Years',
+            investigationMandate: 'Examine call coercion metadata and intimidation logs'
+          },
+          {
+            actName: 'Information Technology Act, 2000',
+            section: 'Section 66D',
+            offenceTitle: 'Punishment for Cheating by Personation by using Computer Resource',
+            classification: 'Cognizable • Bailable/Non-Bailable',
+            penalty: 'Imprisonment up to 3 Years & Fine up to ₹1 Lakh',
+            investigationMandate: 'IPDR extraction & MAC address tracing'
+          },
+          {
+            actName: 'Information Technology Act, 2000',
+            section: 'Section 66C',
+            offenceTitle: 'Identity Theft (Electronic Signature / Password Compromise)',
+            classification: 'Cognizable • Bailable',
+            penalty: 'Imprisonment up to 3 Years & ₹1 Lakh Fine',
+            investigationMandate: 'Credential theft audit trail'
+          }
+        ],
+        proceduralActs: [
+          {
+            act: 'BNSS 2023',
+            section: 'Section 106',
+            power: 'Immediate debit freeze and attachment of mule beneficiary bank accounts'
+          },
+          {
+            act: 'IT Act 2000',
+            section: 'Section 67C',
+            power: 'Mandatory 180-day retention and requisition of telecom IPDR, CDR, and server logs'
+          },
+          {
+            act: 'BNSS 2023',
+            section: 'Section 94',
+            power: 'Search and seizure of computer systems, hard disks, and digital ledgers'
+          }
+        ],
+        preservationOrders: [
+          'Form 65B Certificate under Section 63 BSA 2023 for all server logs',
+          'Nodal Bank Freeze Order (BNSS 106) served within Golden Hour',
+          'Telecom Tower Dump & CDR Preservation Order (IT Act 67C)'
+        ]
+      };
+    }
+
+    // 3. Women & Child Safety / Stalking / Harassment
+    if (
+      rawCategory === 'Women & Child Safety' ||
+      text.includes('stalk') ||
+      text.includes('harass') ||
+      text.includes('molest') ||
+      text.includes('pg') ||
+      text.includes('eve teas') ||
+      text.includes('pocso') ||
+      text.includes('minor')
+    ) {
+      const isMinor = text.includes('pocso') || text.includes('minor') || text.includes('child') || text.includes('boy') || text.includes('school');
+      return {
+        crimeCategory: isMinor ? 'Child Sexual Abuse & Exploitation (POCSO)' : 'Women Safety, Stalking & Sexual Harassment',
+        penalActs: [
+          {
+            actName: 'Bharatiya Nyaya Sanhita, 2023 (BNS)',
+            section: 'Section 78',
+            offenceTitle: 'Stalking (Physical Surveillance or Electronic Communication Monitoring)',
+            classification: 'Cognizable • Bailable (1st) / Non-Bailable (Repeat)',
+            penalty: 'Imprisonment up to 3 Years (1st) / 5 Years (Repeat) & Fine',
+            investigationMandate: 'Preserve route CCTV and Instagram/WhatsApp communications'
+          },
+          {
+            actName: 'Bharatiya Nyaya Sanhita, 2023 (BNS)',
+            section: 'Section 75',
+            offenceTitle: 'Sexual Harassment & Physical Advances involving Unwelcome Conduct',
+            classification: 'Cognizable • Bailable / Non-Bailable',
+            penalty: 'Rigorous Imprisonment up to 3 Years',
+            investigationMandate: 'Record witness statements under Section 180 BNSS'
+          },
+          {
+            actName: 'Bharatiya Nyaya Sanhita, 2023 (BNS)',
+            section: 'Section 79',
+            offenceTitle: 'Word, Gesture or Act Intended to Insult the Modesty of a Woman',
+            classification: 'Cognizable • Bailable',
+            penalty: 'Simple Imprisonment up to 3 Years & Fine',
+            investigationMandate: 'Audio/Video corroboration and eyewitness testimonies'
+          },
+          {
+            actName: 'Bharatiya Nyaya Sanhita, 2023 (BNS)',
+            section: 'Section 115(2)',
+            offenceTitle: 'Voluntarily Causing Hurt',
+            classification: 'Non-Cognizable/Cognizable • Bailable',
+            penalty: 'Imprisonment up to 1 Year or Fine up to ₹10,000',
+            investigationMandate: 'Requisition Medico-Legal Certificate (MLC) from Government Hospital'
+          },
+          ...(isMinor ? [
+            {
+              actName: 'POCSO Act, 2012',
+              section: 'Section 8',
+              offenceTitle: 'Punishment for Sexual Assault on Minor Child',
+              classification: 'Cognizable • Non-Bailable • Special Court Exclusive',
+              penalty: 'Imprisonment not less than 3 Years up to 5 Years & Fine',
+              investigationMandate: 'Confidential investigation by Woman Police Inspector'
+            },
+            {
+              actName: 'POCSO Act, 2012',
+              section: 'Section 12',
+              offenceTitle: 'Punishment for Sexual Harassment of a Minor Child',
+              classification: 'Cognizable • Non-Bailable',
+              penalty: 'Imprisonment up to 3 Years & Fine',
+              investigationMandate: 'Child Welfare Committee (CWC) counseling report'
+            }
+          ] : [])
+        ],
+        proceduralActs: [
+          {
+            act: 'BNSS 2023',
+            section: 'Section 183',
+            power: 'Mandatory recording of victim statement by woman Judicial Magistrate'
+          },
+          {
+            act: 'BNSS 2023',
+            section: 'Section 35(3)',
+            power: 'Notice of appearance to accused with stringent bail monitoring conditions'
+          },
+          {
+            act: 'BNSS 2023',
+            section: 'Section 173(1)',
+            power: 'Zero FIR mandatory registration without territorial restriction'
+          }
+        ],
+        preservationOrders: [
+          'Street CCTV Footage Requisition from Junctions and PG Entrances',
+          'Hospital Medico-Legal Certificate (MLC) & Injury Sheet',
+          'Social media call logs and unedited screen recordings'
+        ]
+      };
+    }
+
+    // 4. Corruption & Police Misconduct
+    if (
+      complaint.category === 'Corruption & Police Misconduct' ||
+      text.includes('bribe') ||
+      text.includes('corruption') ||
+      text.includes('lokayukta') ||
+      text.includes('extortion by police') ||
+      text.includes('gratification')
+    ) {
+      return {
+        crimeCategory: 'Public Servant Misconduct & Corruption (Lokayukta / Vigilance)',
+        penalActs: [
+          {
+            actName: 'Prevention of Corruption Act, 1988 (PC Act)',
+            section: 'Section 7',
+            offenceTitle: 'Public Servant Taking Undue Gratification in Discharge of Official Function',
+            classification: 'Cognizable • Non-Bailable • Special Court Exclusive',
+            penalty: 'Imprisonment not less than 3 Years up to 7 Years & Fine',
+            investigationMandate: 'Phenolphthalein chemical trap protocol and voice spectrography'
+          },
+          {
+            actName: 'Bharatiya Nyaya Sanhita, 2023 (BNS)',
+            section: 'Section 308(2)',
+            offenceTitle: 'Extortion by Public Servant under Colour of Office',
+            classification: 'Cognizable • Non-Bailable',
+            penalty: 'Imprisonment up to 7 Years & Fine',
+            investigationMandate: 'Departmental vigilance inquiry and station CCTV extraction'
+          },
+          {
+            actName: 'Bharatiya Nyaya Sanhita, 2023 (BNS)',
+            section: 'Section 198',
+            offenceTitle: 'Public Servant Disobeying Law with Intent to Cause Injury to Any Person',
+            classification: 'Non-Cognizable • Bailable',
+            penalty: 'Simple Imprisonment up to 1 Year or Fine',
+            investigationMandate: 'Station General Diary (GD) and Case Diary scrutiny'
+          }
+        ],
+        proceduralActs: [
+          {
+            act: 'PC Act 1988',
+            section: 'Section 17A',
+            power: 'Statutory approval for investigation against government servants'
+          },
+          {
+            act: 'Karnataka Lokayukta Act 1984',
+            section: 'Section 9',
+            power: 'Preliminary enquiry and report submission to Competent Authority'
+          }
+        ],
+        preservationOrders: [
+          'Police Station CCTV Internal Hard Disk Seizure (Supreme Court Paramvir Singh compliance)',
+          'Voice Spectrography Audio Samples of Bribe Demand',
+          'General Diary (GD) and Station Lockup Entry Register'
+        ]
+      };
+    }
+
+    // 5. Theft & Burglary
+    if (
+      complaint.category === 'Theft & Burglary' ||
+      text.includes('theft') ||
+      text.includes('stolen') ||
+      text.includes('burglary') ||
+      text.includes('break-in') ||
+      text.includes('bike') ||
+      text.includes('vehicle')
+    ) {
+      return {
+        crimeCategory: 'Theft & Aggravated House-Breaking',
+        penalActs: [
+          {
+            actName: 'Bharatiya Nyaya Sanhita, 2023 (BNS)',
+            section: 'Section 303(2)',
+            offenceTitle: 'Theft of Personal / Movable Property',
+            classification: 'Cognizable • Non-Bailable • Magistrate First Class',
+            penalty: 'Imprisonment up to 3 Years or Fine or Both',
+            investigationMandate: 'Latent fingerprint collection and crime scene videography'
+          },
+          {
+            actName: 'Bharatiya Nyaya Sanhita, 2023 (BNS)',
+            section: 'Section 305',
+            offenceTitle: 'Theft in a Dwelling House, Building, Tent or Vessel',
+            classification: 'Cognizable • Non-Bailable',
+            penalty: 'Rigorous Imprisonment up to 7 Years & Fine',
+            investigationMandate: 'Inspection of forced points of ingress and egress'
+          },
+          {
+            actName: 'Bharatiya Nyaya Sanhita, 2023 (BNS)',
+            section: 'Section 331',
+            offenceTitle: 'Lurking House-Trespass or House-Breaking by Night',
+            classification: 'Cognizable • Non-Bailable',
+            penalty: 'Imprisonment up to 10 Years & Fine',
+            investigationMandate: 'Canvass local pawn shops and stolen vehicle databases (Vahan)'
+          }
+        ],
+        proceduralActs: [
+          {
+            act: 'BNSS 2023',
+            section: 'Section 105',
+            power: 'Mandatory audio-video recording of search and seizure operations'
+          },
+          {
+            act: 'BNSS 2023',
+            section: 'Section 106',
+            power: 'Power of police officer to seize stolen property found during searches'
+          }
+        ],
+        preservationOrders: [
+          'Crime Scene Mahazar with Panchas and Forensic Unit Fingerprint Lift',
+          'Vehicle Engine / Chassis Number Alert on State Vahan Portal',
+          'Neighborhood Security Camera Feeds across Escape Routes'
+        ]
+      };
+    }
+
+    // 6. Default Fallback Framework (Assault / Dispute / Public Safety)
+    return {
+      crimeCategory: 'Cognizable Offence under Bharatiya Nyaya Sanhita (BNS)',
+      penalActs: [
+        {
+          actName: 'Bharatiya Nyaya Sanhita, 2023 (BNS)',
+          section: 'Section 115',
+          offenceTitle: 'Voluntarily Causing Hurt',
+          classification: 'Non-Cognizable • Bailable',
+          penalty: 'Imprisonment up to 1 Year or Fine up to ₹10,000',
+          investigationMandate: 'Medical examination and wound certificate'
+        },
+        {
+          actName: 'Bharatiya Nyaya Sanhita, 2023 (BNS)',
+          section: 'Section 351',
+          offenceTitle: 'Criminal Intimidation with Threat of Injury',
+          classification: 'Non-Cognizable • Bailable',
+          penalty: 'Imprisonment up to 2 Years or Fine',
+          investigationMandate: 'Record complainant detailed statement'
+        },
+        {
+          actName: 'Bharatiya Nyaya Sanhita, 2023 (BNS)',
+          section: 'Section 352',
+          offenceTitle: 'Intentional Insult with Intent to Provoke Breach of Peace',
+          classification: 'Non-Cognizable • Bailable',
+          penalty: 'Imprisonment up to 2 Years or Fine',
+          investigationMandate: 'Examine neighborhood eyewitnesses'
+        }
+      ],
+      proceduralActs: [
+        {
+          act: 'BNSS 2023',
+          section: 'Section 175',
+          power: 'Police Officer power to investigate cognizable offences without Magistrate order'
+        },
+        {
+          act: 'BNSS 2023',
+          section: 'Section 180',
+          power: 'Examination of witnesses by investigating police officer'
+        }
+      ],
+      preservationOrders: [
+        'Crime Scene Spot Inspection Report (Spot Mahazar)',
+        'Medico-Legal Examination Certificate if physical force was used',
+        'Signed Complainant Statement under Section 180 BNSS'
+      ]
+    };
+  },
   /**
    * 1. CITIZEN ROLE: Refine grievance statement, extract missing details, and build evidence checklist
    */
