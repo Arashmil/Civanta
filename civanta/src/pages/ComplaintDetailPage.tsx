@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useGrievance } from '../context/GrievanceContext';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -95,22 +95,44 @@ export const ComplaintDetailPage: React.FC<ComplaintDetailPageProps> = ({
   // On-Demand Translation state
   const isKnOriginal = complaint.originalLanguage === 'kn' || /[\u0C80-\u0CFF]/.test(complaint.description);
   const [translationView, setTranslationView] = useState<'original' | 'translated' | 'dual'>('original');
-  const [translatedContent, setTranslatedContent] = useState<string | null>(
-    isKnOriginal ? (complaint.description && complaint.titleKannada ? complaint.description : null) : (complaint.descriptionKannada || null)
-  );
+  const [translatedContent, setTranslatedContent] = useState<string | null>(() => {
+    if (isKnOriginal) {
+      return complaint.description && !/[\u0C80-\u0CFF]/.test(complaint.description) ? complaint.description : null;
+    } else {
+      return complaint.descriptionKannada && /[\u0C80-\u0CFF]/.test(complaint.descriptionKannada)
+        ? complaint.descriptionKannada
+        : null;
+    }
+  });
   const [isTranslating, setIsTranslating] = useState<boolean>(false);
 
+  useEffect(() => {
+    const valid = isKnOriginal
+      ? (complaint.description && !/[\u0C80-\u0CFF]/.test(complaint.description) ? complaint.description : null)
+      : (complaint.descriptionKannada && /[\u0C80-\u0CFF]/.test(complaint.descriptionKannada) ? complaint.descriptionKannada : null);
+    setTranslatedContent(valid);
+    setTranslationView('original');
+  }, [complaint.id, complaint.description, complaint.descriptionKannada, isKnOriginal]);
+
   const handleTranslateOnDemand = async () => {
-    if (translatedContent) {
+    const hasValidTranslation = translatedContent && (
+      isKnOriginal ? !/[\u0C80-\u0CFF]/.test(translatedContent) : /[\u0C80-\u0CFF]/.test(translatedContent)
+    );
+
+    if (hasValidTranslation) {
       setTranslationView(prev => (prev === 'original' ? 'translated' : 'original'));
       return;
     }
+
     setIsTranslating(true);
     try {
       const sourceLang = isKnOriginal ? 'kn' : 'en';
       const targetLang = isKnOriginal ? 'en' : 'kn';
       const res = await TranslationService.translateText(complaint.description, sourceLang, targetLang);
       setTranslatedContent(res.translatedText);
+      if (targetLang === 'kn') {
+        complaint.descriptionKannada = res.translatedText;
+      }
       setTranslationView('translated');
     } catch (err) {
       console.warn('On-demand translation failed:', err);
@@ -489,7 +511,7 @@ export const ComplaintDetailPage: React.FC<ComplaintDetailPageProps> = ({
 
               {/* On-Demand Translation Controls */}
               <div className="flex items-center gap-1.5 self-start sm:self-auto">
-                {translatedContent ? (
+                {translatedContent && (isKnOriginal ? !/[\u0C80-\u0CFF]/.test(translatedContent) : /[\u0C80-\u0CFF]/.test(translatedContent)) ? (
                   <div className="inline-flex rounded-[4px] border border-slate-200 dark:border-slate-700 p-0.5 bg-slate-100 dark:bg-slate-800 text-[11px]">
                     <button
                       type="button"
@@ -500,7 +522,7 @@ export const ComplaintDetailPage: React.FC<ComplaintDetailPageProps> = ({
                           : 'text-slate-600 dark:text-slate-400'
                       }`}
                     >
-                      Original
+                      {isKnOriginal ? 'ಕನ್ನಡ ಮೂಲ' : 'Original (EN)'}
                     </button>
                     <button
                       type="button"
@@ -558,7 +580,7 @@ export const ComplaintDetailPage: React.FC<ComplaintDetailPageProps> = ({
                   <span className="text-[10px] font-bold uppercase tracking-wider text-police-700 dark:text-police-400 font-mono">
                     {isKnOriginal ? 'English Translation' : 'ಕನ್ನಡ ಅನುವಾದ (Translated)'}
                   </span>
-                  <p className="text-xs text-slate-800 dark:text-slate-200 leading-relaxed whitespace-pre-line">
+                  <p className="text-xs text-slate-800 dark:text-slate-200 leading-relaxed whitespace-pre-line font-kannada">
                     {translatedContent}
                   </p>
                 </div>
@@ -569,7 +591,7 @@ export const ComplaintDetailPage: React.FC<ComplaintDetailPageProps> = ({
                   <Globe size={11} />
                   <span>{isKnOriginal ? 'English Administrative Translation:' : 'ಕನ್ನಡ ಅಧಿಕೃತ ಅನುವಾದ:'}</span>
                 </div>
-                <p className="text-xs text-slate-800 dark:text-slate-200 leading-relaxed whitespace-pre-line bg-slate-50 dark:bg-slate-850/50 p-3 rounded-[6px] border border-slate-200 dark:border-slate-800">
+                <p className="text-xs text-slate-800 dark:text-slate-200 leading-relaxed whitespace-pre-line bg-slate-50 dark:bg-slate-850/50 p-3 rounded-[6px] border border-slate-200 dark:border-slate-800 font-kannada">
                   {translatedContent}
                 </p>
               </div>

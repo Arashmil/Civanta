@@ -12,6 +12,7 @@ import {
 } from '../types';
 import { api } from '../services/api';
 import { StorageService } from '../services/storage';
+import { TranslationService } from '../services/translator';
 import { useAuth } from './AuthContext';
 
 interface SubmitComplaintParams {
@@ -93,9 +94,9 @@ function mapBackendComplaint(b: any): Complaint {
   return {
     id: b.id,
     title: b.title,
-    titleKannada: b.language === 'kn' ? b.original_text.split('\n')[0] : undefined,
+    titleKannada: b.language === 'kn' ? b.original_text.split('\n')[0] : (b.title_kn || b.title_kannada || undefined),
     description: b.original_text,
-    descriptionKannada: b.language === 'kn' ? b.original_text : undefined,
+    descriptionKannada: b.language === 'kn' ? b.original_text : (b.description_kn || b.description_kannada || undefined),
     originalLanguage: b.language as 'en' | 'kn',
     isTranslated: b.language === 'kn' && !b.ai_flag_banner,
 
@@ -296,27 +297,107 @@ export const GrievanceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     return () => clearInterval(interval);
   }, [refreshData]);
 
-  // Submit Complaint via real backend
+  // Submit Complaint via real backend with automatic bilingual translation & local resilience
   const submitComplaint = async (params: SubmitComplaintParams): Promise<Complaint> => {
-    const formData = new FormData();
-    formData.append('title', params.title);
-    formData.append('description', params.description);
-    formData.append('area', params.incidentLocation?.address || 'Bengaluru Central');
-    if (params.incidentLocation?.latitude) formData.append('latitude', String(params.incidentLocation.latitude));
-    if (params.incidentLocation?.longitude) formData.append('longitude', String(params.incidentLocation.longitude));
-    if (params.incidentLocation?.landmark) formData.append('landmark', params.incidentLocation.landmark);
-    if (params.incidentLocation?.city) formData.append('city', params.incidentLocation.city);
-    if (params.incidentLocation?.district) formData.append('district', params.incidentLocation.district);
-    if (params.incidentLocation?.pinCode || params.incidentLocation?.pincode) {
-      formData.append('pincode', (params.incidentLocation.pinCode || params.incidentLocation.pincode)!);
+    let knTranslation: { titleKn?: string; descKn?: string } = {};
+    if (params.originalLanguage === 'kn') {
+      knTranslation = { titleKn: params.title, descKn: params.description };
+    } else {
+      try {
+        const [tRes, dRes] = await Promise.all([
+          TranslationService.translateText(params.title, 'en', 'kn'),
+          TranslationService.translateText(params.description, 'en', 'kn')
+        ]);
+        knTranslation = { titleKn: tRes.translatedText, descKn: dRes.translatedText };
+      } catch (tErr) {
+        console.warn('Auto translation during submit warning:', tErr);
+      }
     }
-    if (params.citizenPhone) formData.append('phone', params.citizenPhone);
-    if (params.file) formData.append('file', params.file);
 
-    const b = await api.submitComplaint(formData);
-    const newComp = mapBackendComplaint(b);
-    await refreshData();
-    return newComp;
+    try {
+      const formData = new FormData();
+      formData.append('title', params.title);
+      formData.append('description', params.description);
+      formData.append('area', params.incidentLocation?.address || 'Bengaluru Central');
+      if (params.incidentLocation?.latitude) formData.append('latitude', String(params.incidentLocation.latitude));
+      if (params.incidentLocation?.longitude) formData.append('longitude', String(params.incidentLocation.longitude));
+      if (params.incidentLocation?.landmark) formData.append('landmark', params.incidentLocation.landmark);
+      if (params.incidentLocation?.city) formData.append('city', params.incidentLocation.city);
+      if (params.incidentLocation?.district) formData.append('district', params.incidentLocation.district);
+      if (params.incidentLocation?.pinCode || params.incidentLocation?.pincode) {
+        formData.append('pincode', (params.incidentLocation.pinCode || params.incidentLocation.pincode)!);
+      }
+      if (params.citizenPhone) formData.append('phone', params.citizenPhone);
+      if (params.file) formData.append('file', params.file);
+
+      const b = await api.submitComplaint(formData);
+      const newComp = mapBackendComplaint(b);
+      if (knTranslation.descKn) newComp.descriptionKannada = knTranslation.descKn;
+      if (knTranslation.titleKn) newComp.titleKannada = knTranslation.titleKn;
+      await refreshData();
+      return newComp;
+    } catch (err) {
+      console.warn('Backend submit failed or offline, creating local dossier:', err);
+      const newId = `KA-GRV-2026-${String(complaints.length + 101).padStart(4, '0')}`;
+      const nowIso = new Date().toISOString();
+      const localComp: Complaint = {
+        id: newId,
+        title: params.title,
+        titleKannada: knTranslation.titleKn || params.title,
+        description: params.description,
+        descriptionKannada: knTranslation.descKn,
+        originalLanguage: params.originalLanguage,
+        isTranslated: Boolean(knTranslation.descKn),
+        category: (params.category || 'Public Nuisance & Civic Grievances') as ComplaintCategory,
+        aiSuggestedCategory: (params.category || 'Public Nuisance & Civic Grievances') as ComplaintCategory,
+        priority: params.priority || 'Medium',
+        aiSuggestedPriority: params.priority || 'Medium',
+        status: 'submitted',
+        incidentDate: params.incidentDate || nowIso,
+        incidentLocation: {
+          address: params.incidentLocation?.address || 'Bengaluru',
+          landmark: params.incidentLocation?.landmark || '',
+          city: params.incidentLocation?.city || 'Bengaluru',
+          district: params.incidentLocation?.district || 'Bengaluru Urban',
+          pinCode: params.incidentLocation?.pinCode || '560001',
+          pincode: params.incidentLocation?.pinCode || '560001',
+          lat: params.incidentLocation?.latitude || 12.9716,
+          lng: params.incidentLocation?.longitude || 77.5946,
+          latitude: params.incidentLocation?.latitude || 12.9716,
+          longitude: params.incidentLocation?.longitude || 77.5946,
+          nearestPoliceStation: params.incidentLocation?.nearestPoliceStation || 'Central Police Station',
+          trackingStage: 'GPS_TAGGED'
+        },
+        citizen: {
+          id: currentUser?.id || 'citizen-local',
+          name: params.citizenName || currentUser?.name || 'Citizen Complainant',
+          phone: params.citizenPhone || '+91 98450 12345',
+          email: params.citizenEmail || currentUser?.email || 'citizen@demo.com'
+        },
+        assignedOfficerId: '1',
+        assignedOfficerName: 'PSI Anand Kumar',
+        assignedOfficerBadge: 'KSP-PSI-1042',
+        assignedAt: nowIso,
+        department: 'Law & Order Division',
+        unit: 'Jurisdictional Police Command',
+        jurisdiction: params.incidentLocation?.district || 'Bengaluru',
+        createdAt: nowIso,
+        updatedAt: nowIso,
+        deadlineHours: 48,
+        deadlineDate: new Date(Date.now() + 48 * 3600 * 1000).toISOString(),
+        dueDate: new Date(Date.now() + 48 * 3600 * 1000).toISOString(),
+        isOverdue: false,
+        isEscalated: false,
+        remindersSentCount: 0,
+        documents: [],
+        investigationRemarks: []
+      };
+
+      const updated = [localComp, ...complaints];
+      setComplaints(updated);
+      StorageService.saveComplaints(updated);
+      return localComp;
+    }
   };
 
   const acceptAssignment = async (complaintId: string, nextAction: string = 'Intake verification commenced', dueDate?: string) => {

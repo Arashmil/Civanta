@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Complaint } from '../../types';
 import { TranslationService } from '../../services/translator';
-import { Languages, Info, Copy, Check, ArrowRightLeft } from 'lucide-react';
+import { Languages, Info, Copy, Check, Sparkles } from 'lucide-react';
 
 interface BilingualViewerProps {
   complaint: Complaint;
@@ -10,6 +10,47 @@ interface BilingualViewerProps {
 export const BilingualViewer: React.FC<BilingualViewerProps> = ({ complaint }) => {
   const [activeTab, setActiveTab] = useState<'dual' | 'kn' | 'en'>('dual');
   const [copied, setCopied] = useState(false);
+  const [isTranslating, setIsTranslating] = useState(false);
+
+  const [kannadaTitle, setKannadaTitle] = useState<string>(
+    complaint.titleKannada && /[\u0C80-\u0CFF]/.test(complaint.titleKannada)
+      ? complaint.titleKannada
+      : (complaint.originalLanguage === 'kn' ? complaint.title : '')
+  );
+
+  const [kannadaDesc, setKannadaDesc] = useState<string>(
+    complaint.descriptionKannada && /[\u0C80-\u0CFF]/.test(complaint.descriptionKannada)
+      ? complaint.descriptionKannada
+      : (complaint.originalLanguage === 'kn' ? complaint.description : '')
+  );
+
+  const englishTitle = complaint.title;
+  const englishDesc = complaint.description;
+
+  // Auto-translate to Kannada if complaint is in English and lacks Kannada translation
+  useEffect(() => {
+    const hasValidKannada = complaint.descriptionKannada && /[\u0C80-\u0CFF]/.test(complaint.descriptionKannada);
+    if (!hasValidKannada && complaint.originalLanguage !== 'kn' && complaint.description) {
+      setIsTranslating(true);
+      TranslationService.translateText(complaint.description, 'en', 'kn')
+        .then(res => {
+          if (res.translatedText) {
+            setKannadaDesc(res.translatedText);
+            complaint.descriptionKannada = res.translatedText;
+          }
+          if (complaint.title && !complaint.titleKannada) {
+            TranslationService.translateText(complaint.title, 'en', 'kn').then(tRes => {
+              if (tRes.translatedText) {
+                setKannadaTitle(tRes.translatedText);
+                complaint.titleKannada = tRes.translatedText;
+              }
+            });
+          }
+        })
+        .catch(err => console.warn('Bilingual auto-translation warning:', err))
+        .finally(() => setIsTranslating(false));
+    }
+  }, [complaint.id, complaint.description, complaint.descriptionKannada, complaint.originalLanguage]);
 
   const engineStatus = TranslationService.getEngineStatusDescription();
 
@@ -18,11 +59,6 @@ export const BilingualViewer: React.FC<BilingualViewerProps> = ({ complaint }) =
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
-
-  const kannadaTitle = complaint.titleKannada || complaint.title;
-  const kannadaDesc = complaint.descriptionKannada || complaint.description;
-  const englishTitle = complaint.title;
-  const englishDesc = complaint.description;
 
   return (
     <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-xs">
@@ -102,10 +138,10 @@ export const BilingualViewer: React.FC<BilingualViewerProps> = ({ complaint }) =
                 </button>
               </div>
               <h5 className="font-semibold text-sm text-slate-900 dark:text-white font-kannada leading-relaxed">
-                {kannadaTitle}
+                {isTranslating ? 'ಅನುವಾದ ಪ್ರಕ್ರಿಯೆಯಲ್ಲಿದೆ...' : (kannadaTitle || englishTitle)}
               </h5>
               <p className="text-xs text-slate-700 dark:text-slate-300 font-kannada leading-relaxed whitespace-pre-line">
-                {kannadaDesc}
+                {isTranslating ? 'ಕನ್ನಡಕ್ಕೆ ಅಧಿಕೃತ ಅನುವಾದಿಸಲಾಗುತ್ತಿದೆ... (Translating to Kannada...)' : (kannadaDesc || englishDesc)}
               </p>
             </div>
 
