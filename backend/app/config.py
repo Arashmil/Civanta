@@ -1,13 +1,23 @@
 import os
 import base64
 from pathlib import Path
-from dotenv import load_dotenv
 
 # Base backend directory
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Load .env if present
-load_dotenv(BASE_DIR / ".env")
+try:
+    from dotenv import load_dotenv
+    load_dotenv(BASE_DIR / ".env")
+except ImportError:
+    env_file = BASE_DIR / ".env"
+    if env_file.exists():
+        with open(env_file, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    k, v = line.split("=", 1)
+                    os.environ.setdefault(k.strip(), v.strip())
 
 _FALLBACK_ENC = "QVEuQWI4Uk42S3J0S0p4ckJFMkVpYUVzVDhPTkJCSFpsT091dGNJMFpDd3EzaTU3a19nTFE="
 
