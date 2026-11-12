@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { AIClassifierService } from '../services/aiClassifier';
 import { TranslationService } from '../services/translator';
+import { VoiceInputButton } from '../components/voice/VoiceInputButton';
 import { ComplaintCategory, PriorityLevel, Complaint } from '../types';
 import { tokens } from '../tokens';
 import {
@@ -49,6 +50,46 @@ export const NewComplaintPage: React.FC<NewComplaintPageProps> = ({
   const [aiConfidence, setAiConfidence] = useState<number>(0);
   const [aiRationale, setAiRationale] = useState<string>('');
   const [uploadedRealFile, setUploadedRealFile] = useState<File | null>(null);
+
+  // On-demand Draft Translation state during filing
+  const [isTranslatingDraft, setIsTranslatingDraft] = useState(false);
+  const [translatedDraft, setTranslatedDraft] = useState<{ title: string; description: string; targetLang: 'en' | 'kn' } | null>(null);
+
+  const handleTranslateDraft = async () => {
+    if (!title.trim() && !description.trim()) {
+      alert(preferredLang === 'kn' ? 'ದಯವಿಟ್ಟು ಮೊದಲು ದೂರಿನ ಶೀರ್ಷಿಕೆ ಅಥವಾ ವಿವರಗಳನ್ನು ನಮೂದಿಸಿ.' : 'Please enter a complaint title or description first.');
+      return;
+    }
+    setIsTranslatingDraft(true);
+    try {
+      const isKn = preferredLang === 'kn' || /[\u0C80-\u0CFF]/.test(`${title} ${description}`);
+      const sourceLang: 'en' | 'kn' = isKn ? 'kn' : 'en';
+      const targetLang: 'en' | 'kn' = isKn ? 'en' : 'kn';
+
+      const [titleRes, descRes] = await Promise.all([
+        title.trim() ? TranslationService.translateText(title.trim(), sourceLang, targetLang) : Promise.resolve({ translatedText: '' }),
+        description.trim() ? TranslationService.translateText(description.trim(), sourceLang, targetLang) : Promise.resolve({ translatedText: '' })
+      ]);
+
+      setTranslatedDraft({
+        title: titleRes.translatedText,
+        description: descRes.translatedText,
+        targetLang
+      });
+    } catch (err) {
+      console.warn('Draft translation failed:', err);
+    } finally {
+      setIsTranslatingDraft(false);
+    }
+  };
+
+  const handleApplyTranslatedDraft = () => {
+    if (!translatedDraft) return;
+    if (translatedDraft.title) setTitle(translatedDraft.title);
+    if (translatedDraft.description) setDescription(translatedDraft.description);
+    setPreferredLang(translatedDraft.targetLang);
+    setTranslatedDraft(null);
+  };
 
   // Location Tracking & Contact
   const [incidentDate, setIncidentDate] = useState('2026-11-09T18:00');
@@ -296,22 +337,25 @@ export const NewComplaintPage: React.FC<NewComplaintPageProps> = ({
   return (
     <div className="max-w-4xl mx-auto space-y-4">
       {/* Top Banner */}
-      <div className={tokens.headerCardClass}>
-        <span className="text-[11px] font-mono uppercase tracking-wider text-amber-300 font-semibold">
+      <div
+        className={`${tokens.headerCardClass} !bg-[#14213D] !text-white`}
+        style={{ backgroundColor: '#14213D', color: '#ffffff' }}
+      >
+        <span className="text-[11px] font-mono uppercase tracking-wider text-amber-300 font-bold">
           Module 1 & 2 • Bilingual Grievance Registration
         </span>
         <h1 className="text-lg font-bold text-white tracking-tight">
           Register Police Grievance
         </h1>
-        <p className="text-xs text-slate-200 dark:text-slate-300">
+        <p className="text-xs text-slate-100">
           File your grievance directly in English or Kannada. Your original statement is recorded as official record, with on-demand bilingual translation available in the case file dossier.
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Preferred Language Toolbar */}
-        <div className={`p-3 ${tokens.cardClass} flex flex-col sm:flex-row sm:items-center justify-between gap-3`}>
-          <div className="flex items-center gap-2">
+        {/* Preferred Language, Voice Input & On-Demand Translation Toolbar */}
+        <div className={`p-3 ${tokens.cardClass} flex flex-col md:flex-row md:items-center justify-between gap-3`}>
+          <div className="flex items-center gap-2 flex-wrap">
             <Languages size={15} className="text-police-600 dark:text-police-400" />
             <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">
               Drafting Language:
@@ -342,10 +386,90 @@ export const NewComplaintPage: React.FC<NewComplaintPageProps> = ({
             </div>
           </div>
 
-          <div className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">
-            {preferredLang === 'kn' ? 'ಕನ್ನಡದಲ್ಲಿ ದೂರು ದಾಖಲಿಸಲಾಗುತ್ತಿದೆ' : 'Drafting official grievance in English'}
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Voice Input Button with Microphone & Presets */}
+            <VoiceInputButton
+              language={preferredLang}
+              onTranscript={transcript => {
+                if (!title.trim()) {
+                  setTitle(transcript.slice(0, 60));
+                }
+                setDescription(prev => {
+                  if (!prev.trim()) return transcript;
+                  if (transcript.startsWith(prev.trim())) return transcript;
+                  return `${prev} ${transcript}`.trim();
+                });
+              }}
+            />
+
+            {/* Optional On-Demand Draft Translation Button */}
+            <button
+              type="button"
+              onClick={handleTranslateDraft}
+              disabled={isTranslatingDraft}
+              className="px-2.5 py-1.5 rounded-[6px] border border-slate-300 dark:border-slate-700 bg-white hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-police-900 dark:text-slate-100 text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-colors shadow-xs disabled:opacity-50"
+              title="Translate your written draft between Kannada and English"
+            >
+              <Languages size={13} className={isTranslatingDraft ? 'animate-spin text-police-600' : 'text-police-600 dark:text-amber-400'} />
+              <span>
+                {isTranslatingDraft
+                  ? (preferredLang === 'kn' ? 'ಅನುವಾದಿಸಲಾಗುತ್ತಿದೆ...' : 'Translating...')
+                  : (preferredLang === 'kn' ? 'ಇಂಗ್ಲಿಷ್‌ಗೆ ಅನುವಾದಿಸಿ (Translate)' : 'Translate to Kannada (ಕನ್ನಡಕ್ಕೆ ಅನುವಾದಿಸಿ)')}
+              </span>
+            </button>
           </div>
         </div>
+
+        {/* On-Demand Translation Draft Comparison Box */}
+        {translatedDraft && (
+          <div className="p-3.5 rounded-[6px] bg-sky-50 dark:bg-sky-950/40 border border-sky-300 dark:border-sky-800 space-y-2.5 text-xs animate-in fade-in">
+            <div className="flex items-center justify-between">
+              <span className="font-bold text-sky-900 dark:text-sky-200 flex items-center gap-1.5">
+                <Languages size={14} className="text-sky-600" />
+                {translatedDraft.targetLang === 'kn' ? 'ಕನ್ನಡ ಅನುವಾದದ ಮುನ್ನೋಟ (Draft Preview in Kannada)' : 'English Translation Draft Preview'}
+              </span>
+              <button
+                type="button"
+                onClick={() => setTranslatedDraft(null)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 font-mono text-xs cursor-pointer"
+              >
+                ✕ Close
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+              <div className="p-2.5 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 space-y-1">
+                <span className="text-[10px] uppercase font-mono font-bold text-slate-500">Original Written Statement</span>
+                <p className="font-semibold text-slate-900 dark:text-slate-100">{title || '(No title)'}</p>
+                <p className="text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line">{description || '(No description)'}</p>
+              </div>
+
+              <div className="p-2.5 rounded bg-white dark:bg-slate-900 border border-sky-300 dark:border-sky-700 space-y-1">
+                <span className="text-[10px] uppercase font-mono font-bold text-sky-700 dark:text-sky-300">Translated Preview</span>
+                <p className="font-semibold text-slate-900 dark:text-slate-100">{translatedDraft.title || '(No title)'}</p>
+                <p className="text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line">{translatedDraft.description || '(No description)'}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => setTranslatedDraft(null)}
+                className="px-3 py-1 rounded-[4px] border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs cursor-pointer"
+              >
+                Keep Original Text
+              </button>
+              <button
+                type="button"
+                onClick={handleApplyTranslatedDraft}
+                className="px-3 py-1 rounded-[4px] bg-police-700 hover:bg-police-800 text-white font-semibold text-xs flex items-center gap-1 cursor-pointer shadow-xs"
+              >
+                <CheckCircle2 size={13} />
+                <span>Apply Translation to Form Fields</span>
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Main Incident Details */}
         <div className={`p-4 ${tokens.cardClass} space-y-3`}>

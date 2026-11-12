@@ -189,16 +189,19 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({ onSelectCo
   return (
     <div className="max-w-4xl mx-auto space-y-4">
       {/* Top Header Panel */}
-      <div className={tokens.headerCardClass}>
+      <div
+        className={`${tokens.headerCardClass} !bg-[#14213D] !text-white`}
+        style={{ backgroundColor: '#14213D', color: '#ffffff' }}
+      >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="space-y-1">
-            <span className="text-[11px] font-mono uppercase tracking-wider text-amber-300 font-semibold">
+            <span className="text-[11px] font-mono uppercase tracking-wider text-amber-300 font-bold">
               Karnataka State Police • Dedicated Role Alerts
             </span>
             <h1 className="text-lg font-bold text-white tracking-tight">
               {t('officialNotificationCentre')}
             </h1>
-            <p className="text-xs text-slate-200 dark:text-slate-300">
+            <p className="text-xs text-slate-100">
               Role-authenticated alert console. Citizen progress notices, officer 24h reminders, and supervisory command intelligence.
             </p>
           </div>

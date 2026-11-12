@@ -67,11 +67,14 @@ export const OfficerDashboard: React.FC<OfficerDashboardProps> = ({
   return (
     <div className="space-y-4">
       {/* Officer Header Bar */}
-      <div className={tokens.headerCardClass}>
+      <div
+        className={`${tokens.headerCardClass} !bg-[#14213D] !text-white`}
+        style={{ backgroundColor: '#14213D', color: '#ffffff' }}
+      >
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <span className="text-[11px] font-mono uppercase tracking-wider text-amber-300 font-semibold">
+              <span className="text-[11px] font-mono uppercase tracking-wider text-amber-300 font-bold">
                 {t('Investigating Officer Workstation')}
               </span>
               <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-[4px] bg-[#1e2e50] border border-slate-600 text-slate-100">
@@ -81,7 +84,7 @@ export const OfficerDashboard: React.FC<OfficerDashboardProps> = ({
             <h1 className="text-lg font-bold text-white tracking-tight">
               {currentOfficer.name} ({currentOfficer.rank})
             </h1>
-            <p className="text-xs text-slate-200 dark:text-slate-300 font-mono">
+            <p className="text-xs text-slate-100 font-mono">
               {currentOfficer.unitName} • {currentOfficer.jurisdiction}
             </p>
           </div>

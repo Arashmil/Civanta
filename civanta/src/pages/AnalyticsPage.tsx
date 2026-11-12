@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useGrievance } from '../context/GrievanceContext';
 import { useLanguage } from '../context/LanguageContext';
+import { exportComplaintsToCSV } from '../services/csvExport';
 import { api } from '../services/api';
 import { tokens } from '../tokens';
 import {
@@ -50,7 +51,7 @@ export const AnalyticsPage: React.FC = () => {
   };
 
   const handleExportCSV = () => {
-    window.open('/api/analytics/export-csv', '_blank');
+    exportComplaintsToCSV(complaints, 'civanta_analytics_complaints.csv');
   };
 
   const total = kpis?.total_complaints ?? complaints.length;
@@ -63,16 +64,19 @@ export const AnalyticsPage: React.FC = () => {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className={tokens.headerCardClass}>
+      <div
+        className={`${tokens.headerCardClass} !bg-[#14213D] !text-white`}
+        style={{ backgroundColor: '#14213D', color: '#ffffff' }}
+      >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="space-y-1">
-            <span className="text-[11px] font-mono uppercase tracking-wider text-amber-300 font-semibold">
+            <span className="text-[11px] font-mono uppercase tracking-wider text-amber-300 font-bold">
               {t('commandAnalyticsBureau')}
             </span>
             <h1 className="text-lg font-bold text-white tracking-tight">
               {t('analyticsReportTitle')}
             </h1>
-            <p className="text-xs text-slate-200 dark:text-slate-300">
+            <p className="text-xs text-slate-100">
               {t('analyticsReportDesc')}
             </p>
           </div>

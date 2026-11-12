@@ -32,6 +32,12 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const t = (key: string): string => {
     if (!key) return '';
+
+    // If language is Kannada and the string already contains Kannada characters, do not translate or change it!
+    if (language === 'kn' && /[\u0C80-\u0CFF]/.test(key)) {
+      return key;
+    }
+
     // 1. Direct key match
     const entry = UI_TRANSLATIONS[key];
     if (entry) {

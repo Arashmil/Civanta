@@ -14,14 +14,17 @@ export const UserManagementPage: React.FC = () => {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className={tokens.headerCardClass}>
-        <span className="text-[11px] font-mono uppercase tracking-wider text-amber-300 font-semibold">
+      <div
+        className={`${tokens.headerCardClass} !bg-[#14213D] !text-white`}
+        style={{ backgroundColor: '#14213D', color: '#ffffff' }}
+      >
+        <span className="text-[11px] font-mono uppercase tracking-wider text-amber-300 font-bold">
           {t('administratorControls')}
         </span>
         <h1 className="text-lg font-bold text-white tracking-tight">
           {t('usersOfficersUnitsManagement')}
         </h1>
-        <p className="text-xs text-slate-200 dark:text-slate-300">
+        <p className="text-xs text-slate-100">
           {t('userManagementDesc')}
         </p>
       </div>

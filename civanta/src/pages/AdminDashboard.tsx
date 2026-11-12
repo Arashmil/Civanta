@@ -64,19 +64,22 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       )}
 
       {/* Admin Header */}
-      <div className={tokens.headerCardClass}>
+      <div
+        className={`${tokens.headerCardClass} !bg-[#14213D] !text-white`}
+        style={{ backgroundColor: '#14213D', color: '#ffffff' }}
+      >
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <Cpu size={15} className="text-amber-300" />
-              <span className="text-[11px] font-mono uppercase tracking-wider text-amber-300 font-semibold">
+              <span className="text-[11px] font-mono uppercase tracking-wider text-amber-300 font-bold">
                 {t('systemAdminConsole')}
               </span>
             </div>
             <h1 className="text-lg font-bold text-white tracking-tight">
               {t('adminControlAndConfig')}
             </h1>
-            <p className="text-xs text-slate-200 dark:text-slate-300">
+            <p className="text-xs text-slate-100">
               {t('adminControlDesc')}
             </p>
           </div>

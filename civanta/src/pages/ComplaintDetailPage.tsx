@@ -254,8 +254,8 @@ export const ComplaintDetailPage: React.FC<ComplaintDetailPageProps> = ({
               )}
             </div>
             <h1 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white leading-snug">
-              {(language === 'kn' && complaint.originalLanguage === 'kn' && complaint.titleKannada)
-                ? complaint.titleKannada
+              {language === 'kn'
+                ? (/[\u0C80-\u0CFF]/.test(complaint.title) ? complaint.title : (complaint.titleKannada || complaint.title))
                 : complaint.title}
             </h1>
             <p className="text-xs text-slate-500">

@@ -120,14 +120,17 @@ export const TrackComplaintPage: React.FC<TrackComplaintPageProps> = ({
   return (
     <div className="max-w-4xl mx-auto space-y-4">
       {/* Header */}
-      <div className={tokens.headerCardClass}>
-        <span className="text-[11px] font-mono uppercase tracking-wider text-amber-300 font-semibold">
+      <div
+        className={`${tokens.headerCardClass} !bg-[#14213D] !text-white`}
+        style={{ backgroundColor: '#14213D', color: '#ffffff' }}
+      >
+        <span className="text-[11px] font-mono uppercase tracking-wider text-amber-300 font-bold">
           Module 8 • Public Accountability Tracker
         </span>
         <h1 className="text-lg font-bold text-white tracking-tight">
           {t('Track Official Grievance Status')}
         </h1>
-        <p className="text-xs text-slate-200 dark:text-slate-300">
+        <p className="text-xs text-slate-100">
           {t('Enter Complaint ID (e.g., KA-CYB-2026-0001)')}
         </p>
 
@@ -201,7 +204,9 @@ export const TrackComplaintPage: React.FC<TrackComplaintPageProps> = ({
                   <PriorityBadge priority={searchedComplaint.priority} size="sm" />
                 </div>
                 <h2 className="text-sm font-bold text-slate-900 dark:text-white mt-1">
-                  {language === 'kn' && searchedComplaint.titleKannada ? searchedComplaint.titleKannada : searchedComplaint.title}
+                  {language === 'kn'
+                    ? (/[\u0C80-\u0CFF]/.test(searchedComplaint.title) ? searchedComplaint.title : (searchedComplaint.titleKannada || searchedComplaint.title))
+                    : searchedComplaint.title}
                 </h2>
               </div>
 

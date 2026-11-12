@@ -5,6 +5,7 @@ import { PriorityBadge } from '../common/PriorityBadge';
 import { SLACountdown } from '../common/SLACountdown';
 import { EmptyState } from '../common/EmptyState';
 import { useLanguage } from '../../context/LanguageContext';
+import { exportComplaintsToCSV } from '../../services/csvExport';
 import { tokens } from '../../tokens';
 import {
   Search,
@@ -48,7 +49,7 @@ export const ComplaintTable: React.FC<ComplaintTableProps> = ({
 
   const handleExportCSV = (e: React.MouseEvent) => {
     e.stopPropagation();
-    window.open('/api/analytics/export-csv', '_blank');
+    exportComplaintsToCSV(filteredComplaints, 'civanta_complaints_ledger.csv');
   };
 
   const filteredComplaints = useMemo(() => {
@@ -263,7 +264,9 @@ export const ComplaintTable: React.FC<ComplaintTableProps> = ({
                     {/* Subject / Incident */}
                     <td className="py-2 px-3 max-w-xs">
                       <p className="font-medium text-slate-900 dark:text-slate-100 truncate">
-                        {language === 'kn' && c.titleKannada ? c.titleKannada : c.title}
+                        {language === 'kn'
+                          ? (/[\u0C80-\u0CFF]/.test(c.title) ? c.title : (c.titleKannada || c.title))
+                          : c.title}
                       </p>
                       <p className="text-[11px] text-slate-500 truncate">
                         {c.citizen.name} • {c.incidentLocation.address}

@@ -92,17 +92,20 @@ export const ActionHistoryPage: React.FC<ActionHistoryPageProps> = ({ onSelectCo
   return (
     <div className="space-y-4 max-w-6xl mx-auto">
       {/* Top Administrative Header Panel with Visible Border */}
-      <div className="p-4 rounded-[6px] bg-[#14213D] text-white border-2 border-slate-700 shadow-sm space-y-3">
+      <div
+        className="p-4 rounded-[6px] !bg-[#14213D] !text-white border-2 border-slate-700 shadow-sm space-y-3"
+        style={{ backgroundColor: '#14213D', color: '#ffffff' }}
+      >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="space-y-0.5">
-            <div className="flex items-center gap-1.5 text-slate-300 text-xs font-mono">
+            <div className="flex items-center gap-1.5 text-amber-300 text-xs font-mono font-semibold">
               <Lock size={14} className="text-amber-400" />
               <span>{t('cryptographicAuditLedger')}</span>
             </div>
             <h1 className="text-lg font-bold text-white tracking-tight">
               {t('systemActionHistory')}
             </h1>
-            <p className="text-xs text-slate-300 max-w-2xl leading-normal">
+            <p className="text-xs text-slate-100 max-w-2xl leading-normal">
               {t('auditLedgerDescription')}
             </p>
           </div>

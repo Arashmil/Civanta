@@ -41,18 +41,21 @@ export const EscalationManagementPage: React.FC<EscalationManagementPageProps> =
 
   return (
     <div className="space-y-4">
-      {/* Header */}
-      <div className={tokens.headerCardClass}>
+      {/* Header with High-Contrast Navy Background */}
+      <div
+        className={`${tokens.headerCardClass} !bg-[#14213D] !text-white`}
+        style={{ backgroundColor: '#14213D', color: '#ffffff' }}
+      >
         <div className="flex items-center gap-2">
           <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
-          <span className="text-[11px] font-mono uppercase tracking-wider text-amber-300 font-semibold">
+          <span className="text-[11px] font-mono uppercase tracking-wider text-amber-300 font-bold">
             {t('supervisorEscalationManagement')}
           </span>
         </div>
         <h1 className="text-lg font-bold text-white tracking-tight">
           {t('slaEscalationsAndOverdue')}
         </h1>
-        <p className="text-xs text-slate-200 dark:text-slate-300 max-w-2xl leading-relaxed">
+        <p className="text-xs text-slate-100 max-w-2xl leading-relaxed font-normal">
           {t('escalationPageDesc')}
         </p>
       </div>
@@ -120,8 +123,8 @@ export const EscalationManagementPage: React.FC<EscalationManagementPageProps> =
                   </div>
 
                   <h3 className="text-sm font-bold text-slate-900 dark:text-white pt-0.5">
-                    {(language === 'kn' && complaint.originalLanguage === 'kn' && complaint.titleKannada)
-                      ? complaint.titleKannada
+                    {language === 'kn'
+                      ? (/[\u0C80-\u0CFF]/.test(complaint.title) ? complaint.title : (complaint.titleKannada || complaint.title))
                       : complaint.title}
                   </h3>
 

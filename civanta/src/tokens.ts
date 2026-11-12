@@ -83,8 +83,8 @@ export const tokens = {
 
   // Common card and header classes
   cardClass: 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[6px] shadow-xs',
-  headerBarClass: 'bg-[#14213D] text-white border-b border-slate-800 rounded-[6px]',
-  headerCardClass: 'p-4 rounded-[6px] bg-[#14213D] dark:bg-slate-900 text-white border border-slate-700 dark:border-slate-800 shadow-sm space-y-2',
+  headerBarClass: '!bg-[#14213D] !text-white border-b border-slate-800 rounded-[6px]',
+  headerCardClass: 'p-4 rounded-[6px] !bg-[#14213D] !text-white border border-slate-700 shadow-sm space-y-2',
 
   // 8px base spacing grid
   spacing: {

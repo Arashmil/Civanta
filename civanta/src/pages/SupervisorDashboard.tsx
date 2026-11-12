@@ -10,6 +10,7 @@ import {
   OfficerWorkloadList
 } from '../components/charts/Charts';
 import { Complaint, Officer, ComplaintStatus } from '../types';
+import { exportComplaintsToCSV } from '../services/csvExport';
 import { tokens } from '../tokens';
 import {
   ShieldAlert,
@@ -78,26 +79,29 @@ export const SupervisorDashboard: React.FC<SupervisorDashboardProps> = ({
   return (
     <div className="space-y-4 max-w-7xl mx-auto">
       {/* Supervisor Command Header with Visible Distinct Border (Requirement 7) */}
-      <div className="p-4 rounded-[6px] bg-[#14213D] text-white border-2 border-slate-700 shadow-sm space-y-2">
+      <div
+        className="p-4 rounded-[6px] !bg-[#14213D] !text-white border-2 border-slate-700 shadow-sm space-y-2"
+        style={{ backgroundColor: '#14213D', color: '#ffffff' }}
+      >
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div className="space-y-0.5">
-            <div className="flex items-center gap-2 text-slate-300 text-xs font-mono">
+            <div className="flex items-center gap-2 text-amber-300 text-xs font-mono font-semibold">
               <Shield size={13} className="text-amber-400" />
               <span>{t('SENIOR SUPERVISOR COMMAND DESK (DYSP)')}</span>
               <span>•</span>
-              <span className="text-slate-400">{t('complaintId')}: KSP-DySP-1042</span>
+              <span className="text-slate-300">{t('complaintId')}: KSP-DySP-1042</span>
             </div>
             <h1 className="text-lg font-bold text-white tracking-tight">
               DySP Rajeshwari Hegde
             </h1>
-            <p className="text-xs text-slate-300">
+            <p className="text-xs text-slate-100">
               {t('Vigilance, Accountability and Command Division • Karnataka State Police')}
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2 no-print">
             <button
-              onClick={() => window.open('/api/analytics/export-csv', '_blank')}
+              onClick={() => exportComplaintsToCSV(complaints, 'civanta_supervisor_complaints.csv')}
               className="px-2.5 py-1.5 rounded-[6px] bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-600 flex items-center gap-1.5 cursor-pointer shadow-xs"
               title="Export complete grievances dataset as CSV"
             >
