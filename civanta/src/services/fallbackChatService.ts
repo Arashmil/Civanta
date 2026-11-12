@@ -71,15 +71,42 @@ async function callGeminiClientSide(
     'gemini-2.5-flash'
   ];
 
-  const systemPrompt = isKn
-    ? `ನೀವು ಕರ್ನಾಟಕ ರಾಜ್ಯ ಪೊಲೀಸ್ (KSP) ಕುಂದುಕೊರತೆ ಮತ್ತು ಹೊಣೆಗಾರಿಕೆ ವೇದಿಕೆಯ "ಸಿವಾಂತ ಸಹಾಯಕ" (CIVANTA Sahāyaka) ಅಧಿಕೃತ AI ಮಾರ್ಗದರ್ಶಿ. 
-ನಾಗರಿಕರು ಹೇಳುವ ಪ್ರತಿಯೊಂದು ವಿಷಯವನ್ನು ಆಳವಾಗಿ ಅರ್ಥಮಾಡಿಕೊಂಡು, ಮಾನವೀಯತೆಯಿಂದ ಮತ್ತು ಕಾನೂನು ನಿಖರತೆಯೊಂದಿಗೆ (ಭಾರತೀಯ ನ್ಯಾಯ ಸಂಹಿತೆ - BNS, IT ಕಾಯ್ದೆ, ಪೋಕ್ಸೋ ಕಾಯ್ದೆ, ಕೆಪಿಐಡಿ ಕಾಯ್ದೆ, ಲೋಕಾಯುಕ್ತ ಕಾಯ್ದೆ) ಉತ್ತರಿಸಿ.
-ತುರ್ತು ಸಂದರ್ಭದಲ್ಲಿ 112, ಸೈಬರ್ ವಂಚನೆಗೆ 1930, ಮಕ್ಕಳ ರಕ್ಷಣೆಗೆ 1098 ಸಹಾಯವಾಣಿಗಳನ್ನು ಸ್ಪಷ್ಟವಾಗಿ ತಿಳಿಸಿ.
+  // Dynamically assemble real-time website cases and complaints context
+  const liveComplaintsSummary = StorageService.getComplaints().slice(0, 10).map(c => 
+    `- Case ${c.id}: "${c.title}" | Category: ${c.category} | Status: ${c.status} | Station: ${c.incidentLocation?.nearestPoliceStation || c.unit} | Priority: ${c.priority}`
+  ).join('\n');
+
+  const baseInstructions = isKn
+    ? `ನೀವು ಕರ್ನಾಟಕ ರಾಜ್ಯ ಪೊಲೀಸ್ (KSP) ಕುಂದುಕೊರತೆ ಮತ್ತು ಹೊಣೆಗಾರಿಕೆ ವೇದಿಕೆಯ "ಸಿವಾಂತ ಸಹಾಯಕ" (CIVANTA Sahāyaka) ಅಧಿಕೃತ AI ಮಾರ್ಗದರ್ಶಿ.
+ನೀವು ವೆಬ್‌ಸೈಟ್ ಹಾಗೂ ಇಂಟರ್ನೆಟ್ ಜ್ಞಾನದೊಂದಿಗೆ ನಾಗರಿಕರ ಎಲ್ಲಾ ಪ್ರಶ್ನೆಗಳಿಗೆ ಸೌಜನ್ಯದಿಂದ, ನಿಖರವಾಗಿ ಉತ್ತರಿಸಬೇಕು.
+ಭಾರತೀಯ ನ್ಯಾಯ ಸಂಹಿತೆ (BNS 2023), BNSS 2023, IT ಕಾಯ್ದೆ 2000, ಪೋಕ್ಸೋ ಕಾಯ್ದೆ, ಕೆಪಿಐಡಿ ಕಾಯ್ದೆ ಹಾಗೂ ಲೋಕಾಯುಕ್ತ ಕಾಯ್ದೆಗಳ ಕುರಿತು ಮಾರ್ಗದರ್ಶನ ನೀಡಿ.
+ಸೈಬರ್ ವಂಚನೆಗೆ 1930, ತುರ್ತು ಸಹಾಯಕ್ಕೆ 112, ಮೊಬೈಲ್ ಬ್ಲಾಕ್ ಮಾಡಲು ceir.gov.in ಬಗ್ಗೆ ತಿಳಿಸಿ.
 ಪ್ರತಿಕ್ರಿಯೆಯ ಕೊನೆಯಲ್ಲಿ "[ಸೂಚಿಸಲಾಗಿದೆ. ತನಿಖಾಧಿಕಾರಿ ದೃಢಪಡಿಸಬೇಕು.]" ಎಂದು ಸೇರಿಸಿ.`
-    : `You are CIVANTA Sahāyaka, the official conversational AI Police Desk Guide for Karnataka State Police (KSP).
-You understand each citizen statement thoroughly, conversing empathetically, professionally, and legally accurately (Bharatiya Nyaya Sanhita - BNS, IT Act 2000, POCSO Act, KPID Act, Prevention of Corruption Act, BNSS).
-Advise on evidence collection, police jurisdiction, grievance registration on CIVANTA, and emergency numbers (1930 for cyber fraud, 112 for police dispatch, 1098 for child safety).
-Always conclude your response with: "[Suggested. Officer must confirm.]"`;
+    : `You are CIVANTA Sahāyaka, the official conversational AI Police Desk Copilot for Karnataka State Police (KSP).
+You work hand-in-hand as a cog in the wheel with the CIVANTA platform and leverage both live website data and broad internet intelligence.
+Provide actionable legal information under the Bharatiya Nyaya Sanhita (BNS 2023), BNSS 2023, IT Act 2000, POCSO Act 2012, and KPID Act.
+Guide citizens on 1930 National Cybercrime Portal (cybercrime.gov.in), CEIR lost mobile blocking (ceir.gov.in), Zero FIR under Section 173(1) BNSS, and Emergency 112.
+Conclude every response with: "[Suggested. Officer must confirm.]"`;
+
+  const systemPrompt = `${baseInstructions}
+
+=== REAL-TIME WEBSITE DATA & PRECEDENT CASES ===
+${liveComplaintsSummary}
+
+FEATURED STATE CASES IN SYSTEM:
+- KSP-2026-CYB-001: ₹24 Crore 'Digital Arrest' Extortion Syndicate (74-year-old woman, 23 mule accounts, ₹4 Cr frozen by Cyber Command DGP Pranab Mohanty)
+- KSP-2026-CYB-002: ₹31.43 Crore Varthur Fintech Escrow Cyber Fraud (Whitefield CEN PS, 301 unauthorized transactions, BNS 318(4))
+- KSP-SIT-EOW-003: I Monetary Advisory (IMA) Multi-Crore Ponzi Scam (KPID Act Sec 9, ₹2500 Cr, 1 lakh+ investors)
+- KSP-2025-WOM-004: Instagram Stalking & Assault Outside Ladies PG Ullal (Jnanabharathi PS, BNS 78/75/115)
+- KSP-2026-WOM-005: Public Road Stalking in Kuriya, Puttur Town PS (BNS 78/79)
+- KSP-2026-POC-006: Institutional Sexual Harassment of Minors, Mangaluru Women PS (POCSO 8 & 12, Sec 183 BNSS)
+- KSP-2026-MIS-007: Police Extortion & Verbal Abuse at Pandeshwar PS (BNS 308(2)/352)
+
+=== INTERNET & STATUTORY INTELLIGENCE ===
+- 1930 Cyber Fraud Helpline: Citizen Financial Cyber Fraud Reporting System freezes mule accounts during the golden hour.
+- CEIR (ceir.gov.in): Central Equipment Identity Register blocks stolen/lost phone IMEIs across India.
+- Zero FIR: Under Section 173(1) BNSS 2023, any police station must register an FIR irrespective of location jurisdiction.
+- Lokayukta: Anti-corruption complaints against public servants under the Prevention of Corruption Act 1988.`;
 
   const contents = history.slice(-6).map(h => ({
     role: h.role === 'assistant' ? 'model' : 'user',
@@ -90,9 +117,13 @@ Always conclude your response with: "[Suggested. Officer must confirm.]"`;
   for (const model of models) {
     try {
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (apiKey) {
+        headers['Authorization'] = `Bearer ${apiKey}`;
+      }
       const res = await fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
           system_instruction: {
             parts: [{ text: systemPrompt }]

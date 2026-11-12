@@ -13,9 +13,6 @@ import {
   Minus,
   Maximize2,
   Sparkles,
-  Key,
-  Check,
-  ExternalLink,
   HelpCircle
 } from 'lucide-react';
 
@@ -34,17 +31,13 @@ export const ChatbotWidget: React.FC = () => {
   const [isMinimized, setIsMinimized] = useState(false);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isKeyConfigOpen, setIsKeyConfigOpen] = useState(false);
-  const [geminiKeyInput, setGeminiKeyInput] = useState(() => localStorage.getItem('civanta_gemini_api_key') || '');
-  const [activeGeminiKey, setActiveGeminiKey] = useState(() => localStorage.getItem('civanta_gemini_api_key') || '');
-  const [keySavedToast, setKeySavedToast] = useState(false);
 
   const initialGreeting: ChatMessage = {
     id: 'welcome',
     role: 'assistant',
     content: language === 'kn'
-      ? "ನಮಸ್ಕಾರ! ನಾನು ಸಿವಾಂತ ಸಹಾಯಕ (CIVANTA Sahāyaka), ಕರ್ನಾಟಕ ರಾಜ್ಯ ಪೊಲೀಸ್ ದೂರು ಹಾಗೂ ಹೊಣೆಗಾರಿಕೆ ವ್ಯವಸ್ಥೆಯ ಅಧಿಕೃತ AI ಮಾರ್ಗದರ್ಶಿ. ನಾನು ನಿಮ್ಮ ಪ್ರಶ್ನೆಗಳನ್ನು ನೈಸರ್ಗಿಕ ಭಾಷೆಯಲ್ಲಿ ಗ್ರಹಿಸಿ, ಕಾನೂನು ಪರಿಹಾರಗಳು (BNS), ಸೈಬರ್ ವಂಚನೆ (1930), ತುರ್ತು ಸಹಾಯ (112), ಮತ್ತು ನೈಜ ಪ್ರಕರಣಗಳ ಸ್ಥಿತಿ (ಉದಾ: KSP-2026-CYB-001) ಪರಿಶೀಲಿಸಲು ಸಹಾಯ ಮಾಡಬಲ್ಲೆ.\n\n[ಸೂಚಿಸಲಾಗಿದೆ. ತನಿಖಾಧಿಕಾರಿ ದೃಢಪಡಿಸಬೇಕು.]"
-      : "Hello! I am CIVANTA Sahāyaka, the conversational AI Police Desk Guide for Karnataka State Police. I am trained in natural language processing (NLP) to understand your situation, explain laws under the Bharatiya Nyaya Sanhita (BNS), assist in filing grievances with evidence, report to emergency helplines (1930 / 112), or inspect active cases (e.g. KSP-2026-CYB-001).\n\n[Suggested. Officer must confirm.]",
+      ? "ನಮಸ್ಕಾರ! ನಾನು ಸಿವಾಂತ ಸಹಾಯಕ (CIVANTA Sahāyaka), ಕರ್ನಾಟಕ ರಾಜ್ಯ ಪೊಲೀಸ್ ದೂರು ಹಾಗೂ ಹೊಣೆಗಾರಿಕೆ ವ್ಯವಸ್ಥೆಯ ಅಧಿಕೃತ AI ಮಾರ್ಗದರ್ಶಿ. ನಾನು ನಿಮ್ಮ ಪ್ರಶ್ನೆಗಳನ್ನು ನೈಸರ್ಗಿಕ ಭಾಷೆಯಲ್ಲಿ ಗ್ರಹಿಸಿ, ಕಾನೂನು ಪರಿಹಾರಗಳು (BNS 2023), ಸೈಬರ್ ವಂಚನೆ (1930), ತುರ್ತು ಸಹಾಯ (112), ಮತ್ತು ನೈಜ ಪ್ರಕರಣಗಳ ಸ್ಥಿತಿ (ಉದಾ: KSP-2026-CYB-001) ಪರಿಶೀಲಿಸಲು ಸದಾ ಸಿದ್ಧನಾಗಿದ್ದೇನೆ.\n\n[ಸೂಚಿಸಲಾಗಿದೆ. ತನಿಖಾಧಿಕಾರಿ ದೃಢಪಡಿಸಬೇಕು.]"
+      : "Hello! I am CIVANTA Sahāyaka, the conversational AI Police Desk Guide for Karnataka State Police. I am connected directly with live platform data and web intelligence to understand your situation, explain laws under the Bharatiya Nyaya Sanhita (BNS), assist in filing grievances with evidence, connect to emergency helplines (1930 / 112), or inspect active cases (e.g. KSP-2026-CYB-001).\n\n[Suggested. Officer must confirm.]",
     timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
   };
 
@@ -67,30 +60,6 @@ export const ChatbotWidget: React.FC = () => {
       setMessages([initialGreeting]);
     }
   }, [language]);
-
-  const handleSaveGeminiKey = (e: React.FormEvent) => {
-    e.preventDefault();
-    const cleanKey = geminiKeyInput.trim();
-    if (cleanKey) {
-      localStorage.setItem('civanta_gemini_api_key', cleanKey);
-      setActiveGeminiKey(cleanKey);
-    } else {
-      localStorage.removeItem('civanta_gemini_api_key');
-      setActiveGeminiKey('');
-    }
-    setKeySavedToast(true);
-    setTimeout(() => {
-      setKeySavedToast(false);
-      setIsKeyConfigOpen(false);
-    }, 1200);
-  };
-
-  const handleClearKey = () => {
-    localStorage.removeItem('civanta_gemini_api_key');
-    setGeminiKeyInput('');
-    setActiveGeminiKey('');
-    setIsKeyConfigOpen(false);
-  };
 
   const handleSend = async (textToSend?: string) => {
     const text = (textToSend || inputMessage).trim();
@@ -268,42 +237,21 @@ export const ChatbotWidget: React.FC = () => {
               <div className="leading-tight">
                 <div className="flex items-center gap-1.5 flex-wrap">
                   <span className="font-bold text-xs text-white">CIVANTA Sahāyaka</span>
-                  {activeGeminiKey ? (
-                    <span
-                      className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-purple-950 text-purple-300 border border-purple-700 flex items-center gap-1 font-semibold"
-                      title="Powered by Live Google Gemini API"
-                    >
-                      <Sparkles size={10} className="text-amber-400" />
-                      Gemini Live
-                    </span>
-                  ) : (
-                    <span
-                      className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-emerald-950 text-emerald-300 border border-emerald-800 flex items-center gap-1 font-semibold"
-                      title="Active Multilingual Neural NLP Engine"
-                    >
-                      <Bot size={10} />
-                      Neural NLP
-                    </span>
-                  )}
+                  <span
+                    className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-purple-950 text-purple-300 border border-purple-700 flex items-center gap-1 font-semibold"
+                    title="Seamlessly connected with Karnataka Police and Internet Intelligence"
+                  >
+                    <Sparkles size={10} className="text-amber-400" />
+                    AI Copilot Active
+                  </span>
                 </div>
                 <span className="text-[10px] text-slate-300 font-mono block">
-                  Karnataka State Police • AI Desk
+                  Karnataka State Police • Live Web & Case Intelligence
                 </span>
               </div>
             </div>
 
             <div className="flex items-center gap-1">
-              <button
-                onClick={() => setIsKeyConfigOpen(!isKeyConfigOpen)}
-                className={`p-1.5 rounded cursor-pointer transition-colors ${
-                  isKeyConfigOpen
-                    ? 'bg-amber-500 text-police-950 font-bold'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
-                }`}
-                title="Configure Gemini AI API Key"
-              >
-                <Key size={13} />
-              </button>
               <button
                 onClick={handleResetChat}
                 className="p-1.5 rounded text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer"
@@ -330,71 +278,6 @@ export const ChatbotWidget: React.FC = () => {
 
           {!isMinimized && (
             <>
-              {/* Optional Gemini API Key Drawer */}
-              {isKeyConfigOpen && (
-                <div className="p-3 bg-slate-900 border-b border-slate-700 text-white space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-[11px] text-amber-300 flex items-center gap-1.5">
-                      <Sparkles size={13} />
-                      Connect Google Gemini AI Engine
-                    </span>
-                    <button
-                      onClick={() => setIsKeyConfigOpen(false)}
-                      className="text-slate-400 hover:text-white cursor-pointer"
-                    >
-                      <X size={12} />
-                    </button>
-                  </div>
-                  <p className="text-[10.5px] text-slate-300 leading-normal">
-                    Enter your free Gemini API key to activate live multi-turn Google Gemini AI conversational responses. Keys are saved securely in your browser's private local storage.
-                  </p>
-                  <form onSubmit={handleSaveGeminiKey} className="space-y-2">
-                    <input
-                      type="password"
-                      value={geminiKeyInput}
-                      onChange={e => setGeminiKeyInput(e.target.value)}
-                      placeholder="Paste Gemini API Key (AIzaSy...)"
-                      className="w-full px-2.5 py-1.5 rounded-[4px] bg-slate-950 border border-slate-700 text-white text-xs font-mono placeholder:text-slate-500 focus:outline-none focus:border-amber-400"
-                    />
-                    <div className="flex items-center justify-between pt-1">
-                      <a
-                        href="https://aistudio.google.com/app/apikey"
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-[10px] text-amber-400 hover:underline flex items-center gap-1"
-                      >
-                        <span>Get free Gemini key</span>
-                        <ExternalLink size={10} />
-                      </a>
-                      <div className="flex items-center gap-1.5">
-                        {activeGeminiKey && (
-                          <button
-                            type="button"
-                            onClick={handleClearKey}
-                            className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10.5px] cursor-pointer"
-                          >
-                            Remove
-                          </button>
-                        )}
-                        <button
-                          type="submit"
-                          className="px-3 py-1 rounded bg-amber-500 hover:bg-amber-600 text-police-950 font-bold text-[10.5px] flex items-center gap-1 cursor-pointer"
-                        >
-                          {keySavedToast ? (
-                            <>
-                              <Check size={11} />
-                              <span>Saved!</span>
-                            </>
-                          ) : (
-                            <span>Save Key</span>
-                          )}
-                        </button>
-                      </div>
-                    </div>
-                  </form>
-                </div>
-              )}
-
               {/* Statutory Disclaimer Banner */}
               <div className="px-3 py-1.5 bg-amber-50 dark:bg-amber-950/60 border-b border-amber-200 dark:border-amber-900/80 flex items-center gap-1.5 text-[10px] text-amber-900 dark:text-amber-200 font-medium">
                 <AlertTriangle size={12} className="text-amber-600 shrink-0" />

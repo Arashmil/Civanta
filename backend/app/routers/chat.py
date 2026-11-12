@@ -27,72 +27,155 @@ class ChatResponse(BaseModel):
     complaint_found: Optional[dict] = None
     disclaimer: str = "Suggested. Officer must confirm."
 
-SYSTEM_PROMPT = """You are 'CIVANTA Sahāyaka' (ಸಿವಾಂತ ಸಹಾಯಕ), the official AI Grievance Assistant for Karnataka State Police (KSP).
-Your mission is to assist citizens, complainants, and police personnel politely, factually, and accurately.
+REAL_CASES = {
+    "KSP-2026-CYB-001": {
+        "id": "KSP-2026-CYB-001",
+        "fir_number": "0114/2026",
+        "title": "₹24 Crore 'Digital Arrest' Extortion Syndicate",
+        "category": "Cybercrime / Cyber & Financial Fraud",
+        "priority": "Urgent",
+        "status": "Accused Arrested / Charge Sheet Pending",
+        "assigned_unit": "Bengaluru Cyber Crime PS / State Cyber Command",
+        "officer": "Cyber Crime Investigation Team (Police Inspector)",
+        "supervising_officer": "Pranab Mohanty, IPS (DGP, State Cyber Command)",
+        "applicable_laws": "BNS Section 318(4) (Cheating), BNS Section 319(2) (Personation), BNS Section 308 (Extortion), IT Act Section 66D",
+        "financial_loss_inr": 240000000,
+        "amount_frozen_inr": 40000000,
+        "next_action": "Coordinate inter-state extradition and forensic audit of 23 mule accounts",
+        "due_date": "2026-11-20 18:00",
+        "summary": "Inter-state gang impersonating CBI and ED officials coerced a 74-year-old Bengaluru woman into transferring ₹24 crore across 23 mule accounts. Cyber Command intervened via bank alerts and froze ₹4 crore."
+    },
+    "KSP-2026-CYB-002": {
+        "id": "KSP-2026-CYB-002",
+        "fir_number": "0595/2026",
+        "title": "₹31.43 Crore Varthur Fintech Escrow Cyber Fraud",
+        "category": "Cybercrime / Financial Fraud",
+        "priority": "Urgent",
+        "status": "Under Active Investigation",
+        "assigned_unit": "Whitefield CEN Police Station",
+        "officer": "Whitefield CEN Investigation Team (Police Inspector)",
+        "supervising_officer": "DCP Whitefield Division (IPS)",
+        "applicable_laws": "BNS Section 318(4), IT Act Section 66, IT Act Section 66C (Identity Theft)",
+        "financial_loss_inr": 314300000,
+        "amount_frozen_inr": 0,
+        "next_action": "Audit 301 API access tokens and subpoena private bank server transaction logs",
+        "due_date": "2026-11-18 12:00",
+        "summary": "Hackers executed 301 unauthorized transactions draining ₹31.43 crore from a Varthur-based fintech firm's private bank escrow account."
+    },
+    "KSP-SIT-EOW-003": {
+        "id": "KSP-SIT-EOW-003",
+        "fir_number": "0073/2019",
+        "title": "I Monetary Advisory (IMA) Multi-Crore Ponzi Scam",
+        "category": "Financial Fraud & Scams / Economic Offence",
+        "priority": "Urgent",
+        "status": "Property Attachment & Trial Ongoing",
+        "assigned_unit": "Special Investigation Team (SIT) / Commercial Street PS",
+        "officer": "S. Girish, IPS (DCP Crime / Karnataka SIT)",
+        "supervising_officer": "B.R. Ravikanthe Gowda, IPS (DIG, SIT Chief)",
+        "applicable_laws": "KPID Act Section 9, BNS Section 316(5) (Criminal Breach of Trust), BNS Section 318(4) (Cheating)",
+        "financial_loss_inr": 25000000000,
+        "amount_frozen_inr": 3500000000,
+        "next_action": "Liquidate attached real estate assets to disburse restitution to 1 lakh+ depositors",
+        "due_date": "2026-12-31 23:59",
+        "summary": "Over 1 lakh investors across Karnataka were duped of ₹2,500+ crore through fraudulent Islamic investment schemes; properties attached under the KPID Act."
+    },
+    "KSP-2025-WOM-004": {
+        "id": "KSP-2025-WOM-004",
+        "fir_number": "0412/2025",
+        "title": "Instagram Stalking & Assault Outside Ladies PG (Ullal)",
+        "category": "Women & Child Safety / Harassment & Assault",
+        "priority": "High",
+        "status": "Accused Arrested",
+        "assigned_unit": "Jnanabharathi Police Station",
+        "officer": "Jnanabharathi PS Investigation Team (Police Inspector)",
+        "supervising_officer": "C. Vamsi Krishna, IPS (Joint Commissioner of Police West)",
+        "applicable_laws": "BNS Section 78 (Stalking), BNS Section 75 (Sexual Harassment), BNS Section 115(2) (Voluntarily Causing Hurt), BNS Section 351 (Criminal Intimidation)",
+        "financial_loss_inr": 0,
+        "amount_frozen_inr": 0,
+        "next_action": "Submit Medico-Legal Certificate (MLC) and street CCTV footage with charge sheet",
+        "due_date": "2026-11-25 17:00",
+        "summary": "Accused stalked a 21-year-old student outside Ladies PG in Ullal and physically assaulted her after online harassment; accused arrested."
+    },
+    "KSP-2026-WOM-005": {
+        "id": "KSP-2026-WOM-005",
+        "fir_number": "0089/2026",
+        "title": "Public Road Stalking & Harassment in Kuriya",
+        "category": "Women & Child Safety / Street Harassment",
+        "priority": "Medium",
+        "status": "Accused Arrested",
+        "assigned_unit": "Puttur Town Police Station",
+        "officer": "Puttur Town PS Officer (Police Sub-Inspector)",
+        "supervising_officer": "DySP Puttur Sub-Division (Dakshina Kannada District Police)",
+        "applicable_laws": "BNS Section 78 (Stalking), BNS Section 79 (Insulting Modesty of a Woman)",
+        "financial_loss_inr": 0,
+        "amount_frozen_inr": 0,
+        "next_action": "File final report before jurisdictional Magistrate court",
+        "due_date": "2026-11-28 15:00",
+        "summary": "Youth followed and verbally harassed a woman walking on public road in Kuriya, Puttur; arrested promptly."
+    },
+    "KSP-2026-POC-006": {
+        "id": "KSP-2026-POC-006",
+        "fir_number": "0034/2026",
+        "title": "Institutional Sexual Harassment of Minors",
+        "category": "Women & Child Safety / Child Abuse & POCSO",
+        "priority": "Urgent",
+        "status": "Accused Booked / Investigation Ongoing",
+        "assigned_unit": "Mangaluru Women's Police Station",
+        "officer": "Confidential IO (Woman Police Inspector)",
+        "supervising_officer": "ACP Crime & Women Cell (Mangaluru City Police)",
+        "applicable_laws": "POCSO Act Sections 8 & 12, BNS Section 75(2) (Sexual Harassment)",
+        "financial_loss_inr": 0,
+        "amount_frozen_inr": 0,
+        "next_action": "Record Section 183 BNSS Magistrate Statements and submit Child Welfare Committee (CWC) counseling report",
+        "due_date": "2026-11-19 16:00",
+        "summary": "Cases registered against an institutional figure accused of sexually harassing two minor boys; handled under strict confidentiality protocols."
+    },
+    "KSP-2026-MIS-007": {
+        "id": "KSP-2026-MIS-007",
+        "fir_number": "0198/2026",
+        "title": "Extortion & Verbal Abuse by Police Personnel",
+        "category": "Corruption & Police Misconduct",
+        "priority": "Urgent",
+        "status": "Departmental Inquiry Initiated",
+        "assigned_unit": "Mangaluru South (Pandeshwar) Police Station",
+        "officer": "Mangaluru South PS Investigating Team",
+        "supervising_officer": "DCP Law & Order (Mangaluru City)",
+        "applicable_laws": "BNS Section 308(2) (Extortion), BNS Section 352 (Intentional Insult)",
+        "financial_loss_inr": 0,
+        "amount_frozen_inr": 0,
+        "next_action": "Review station CCTV and submit departmental inquiry report to Commissioner",
+        "due_date": "2026-11-17 11:00",
+        "summary": "Allegations of extortion and verbal abuse by police personnel at Pandeshwar PS under departmental inquiry."
+    }
+}
 
-CRITICAL FORMATTING INSTRUCTIONS (STRICT PLAIN-TEXT ONLY):
-- Write in clean, professional, conversational plain text without markdown symbols.
-- DO NOT use markdown bold asterisks (never use **word**), italics (*word*), or any asterisks (*).
-- DO NOT use markdown header hashtags (#, ##, ###).
-- DO NOT use raw markdown bullet characters (* or -). If listing points, use clean plain text bullets (• ) or standard numbers (1., 2.).
-- Present case details in clean, natural lines, for example:
-  Case ID: KA-CYB-2026-0001
-  Subject: Unauthorized debit card OTP compromise
-  Status: In Progress
-  Assigned Officer: PSI Anand Kumar
-  Next Action: Trace IP origin of phishing server
-  Resolution Due Date: 2026-11-12
-- Keep answers concise, human-readable, and free of markdown syntax artifacts.
+SYSTEM_PROMPT = """You are 'CIVANTA Sahāyaka' (ಸಿವಾಂತ ಸಹಾಯಕ), the official conversational AI Police Desk Copilot for Karnataka State Police (KSP).
+You operate hand-in-hand with the CIVANTA platform and have deep knowledge of the website, its active cases, Indian criminal law, police procedures, and internet resources.
 
-KNOWLEDGE BASE & POLICE PROCEDURES:
-1. STATUTORY POLICE GRIEVANCE CATEGORIES:
-   - Cybercrime: UPI fraud, SIM swap, phishing, social media hacking, ransomware, fake accounts.
-   - Financial Fraud & Scams: bogus trading groups, loan app harassment, Ponzi schemes, counterfeit currency.
-   - Women & Child Safety: stalking, harassment, domestic violence, workplace POSH, eve-teasing.
-   - Theft & Burglary: house theft, chain snatching, vehicle theft, pickpocketing.
-   - Lost & Found Property: lost mobile phones (CEIR tracking), laptops, bags, original certificates, passports.
-   - Traffic & Road Safety: dangerous overspeeding, hit-and-run, road encroachments, signal defects.
-   - Assault & Violent Crimes: physical violence, life threats, weapons, grievous hurt.
-   - Narcotics & Illegal Substances: drug peddling, contraband, substance abuse.
-   - Missing Persons & Runaways: missing adults, missing children, tracing.
-   - Property & Land Disputes: land encroachment, tenant/landlord disputes, forged sale deeds.
-   - Public Nuisance & Civic Grievances: noise pollution, illegal dumping, public drinking.
-   - Corruption & Police Misconduct: bribery demands, officer harassment, procedural lapse.
-2. STATUTORY RESOLUTION SLA RULES:
-   - 24 Hours: Investigating officer must acknowledge and log mandatory next action.
-   - 3 Days Overdue: Automated escalation to Supervisory Command (DySP console).
-   - 7 Days Overdue: Critical Red Flag alert elevated on Supervisory Command console.
-3. EMERGENCY & HELPLINE NUMBERS:
-   - All Emergency Services (Police / Fire / Ambulance): Dial 112
-   - National Cyber Crime Helpline: Dial 1930 (or visit cybercrime.gov.in)
-   - Women Helpline: 1091 / 112
-   - Child Helpline: 1098
-4. CORE STATUTORY PILOT DIRECTIVE:
-   - You are strictly an informational assistant for grievance tracking and procedural navigation.
-   - You must NEVER determine criminal guilt, judge allegations, register offences, or issue FIRs. Those responsibilities remain solely with authorized police officers.
-   - Always ensure every response carries the statutory reminder: '[Suggested. Officer must confirm.]'.
-5. BILINGUAL SUPPORT:
-   - If the user interacts in Kannada, respond in natural, polite, and grammatically correct Kannada.
-   - If the user interacts in English, respond in professional administrative English.
+CORE RESPONSIBILITIES:
+1. Provide accurate, empathetic, and actionable guidance for citizens, investigating officers (PSIs), supervisors (DySPs), and administrators.
+2. Explain legal provisions under the Bharatiya Nyaya Sanhita (BNS 2023), Bharatiya Nagarik Suraksha Sanhita (BNSS 2023), IT Act 2000, POCSO Act 2012, and KPID Act.
+3. Guide users on immediate emergency actions (112, 1930 Cyber helpline, cybercrime.gov.in, CEIR portal for lost phones).
+4. Provide factual updates on active cases in the CIVANTA website (e.g., KSP-2026-CYB-001, KSP-2026-CYB-002, KSP-SIT-EOW-003, KSP-2025-WOM-004, KSP-2026-POC-006).
+5. Guide complainants on how to use CIVANTA's tools: 'AI Grievance Structurer', 'Jurisdiction Finder', 'Statutory Notices (Sec 106 BNSS / 67C IT Act)', and 'Supervisory Directives'.
+
+INTERNET & STATUTORY INTELLIGENCE:
+- Cyber Fraud Golden Hour: Reporting to 1930 or cybercrime.gov.in within 2 hours enables freezing funds in mule bank accounts via CFCFRMS.
+- Lost Mobile Phones: Use Central Equipment Identity Register (ceir.gov.in) to block IMEI across all telecom operators.
+- Zero FIR: Under Section 173(1) BNSS 2023, a citizen can file a Zero FIR at ANY police station in India regardless of territorial jurisdiction.
+- Stalking & Harassment: BNS Section 78 (Stalking), BNS Section 75 (Sexual Harassment), BNS Section 79 (Word/Gesture insulting modesty of a woman).
+- Cheating & Fraud: BNS Section 318(4) (formerly IPC 420), IT Act Section 66D.
+- Corruption Complaints: Lodge with Karnataka Lokayukta (lokayukta.kar.nic.in) under the Prevention of Corruption Act 1988 with affidavit.
+
+FORMATTING:
+- Professional, clear plain text with clean bullet points (•) and numbered steps.
+- Bilingual: Fluently respond in Kannada or English depending on user input.
+- Always include the statutory disclaimer: '[Suggested. Officer must confirm.]' or '[ಸೂಚಿಸಲಾಗಿದೆ. ತನಿಖಾಧಿಕಾರಿ ದೃಢಪಡಿಸಬೇಕು.]'.
 """
 
-def clean_chat_reply(text: str) -> str:
-    """Removes annoying markdown artifacts (*, **, #) to deliver clean, polished plain text."""
-    if not text:
-        return ""
-    # Strip markdown headers #, ##, ###
-    text = re.sub(r"^#{1,6}\s*", "", text, flags=re.MULTILINE)
-    # Strip ** bold and * italic markers
-    text = re.sub(r"\*{1,3}([^*]+)\*{1,3}", r"\1", text)
-    # Convert leading markdown bullets "* " or "- " to clean "• "
-    text = re.sub(r"^[*-]\s+", "• ", text, flags=re.MULTILINE)
-    # Strip any remaining stray asterisks or hashes
-    text = text.replace("**", "").replace("*", "")
-    text = re.sub(r"\n{3,}", "\n\n", text)
-    return text.strip()
-
 def extract_complaint_id(text: str) -> Optional[str]:
-    match = re.search(r"\b(KA-[A-Z]{3}-2026-\d{4})\b", text, re.IGNORECASE)
+    # Match both KA-XXX-2026-XXXX and KSP-XXXX-XXX-XXX
+    match = re.search(r"\b(KA-[A-Z]{3}-2026-\d{4}|KSP-[A-Z0-9-]+)\b", text, re.IGNORECASE)
     return match.group(1).upper() if match else None
 
 def rule_based_fallback(message: str, comp_data: Optional[dict], lang: str) -> str:
@@ -191,21 +274,24 @@ def chat_with_bot(req: ChatRequest, db: Session = Depends(get_db)):
     comp_data = None
 
     if cid:
-        comp = db.query(Complaint).filter(Complaint.id == cid).first()
-        if comp:
-            comp_data = {
-                "id": comp.id,
-                "title": comp.title,
-                "category": comp.category,
-                "priority": comp.priority,
-                "status": comp.status,
-                "assigned_unit": comp.assigned_unit,
-                "officer": comp.assigned_officer_name or "Unassigned",
-                "next_action": comp.next_action,
-                "due_date": comp.due_date.strftime("%Y-%m-%d %H:%M") if comp.due_date else "Not set",
-                "is_overdue": comp.is_overdue,
-                "is_escalated": comp.is_escalated
-            }
+        if cid in REAL_CASES:
+            comp_data = REAL_CASES[cid]
+        else:
+            comp = db.query(Complaint).filter(Complaint.id == cid).first()
+            if comp:
+                comp_data = {
+                    "id": comp.id,
+                    "title": comp.title,
+                    "category": comp.category,
+                    "priority": comp.priority,
+                    "status": comp.status,
+                    "assigned_unit": comp.assigned_unit,
+                    "officer": comp.assigned_officer_name or "Unassigned",
+                    "next_action": comp.next_action,
+                    "due_date": comp.due_date.strftime("%Y-%m-%d %H:%M") if comp.due_date else "Not set",
+                    "is_overdue": comp.is_overdue,
+                    "is_escalated": comp.is_escalated
+                }
 
     # If Gemini API key is available, call Gemini
     if GEMINI_API_KEY and GEMINI_API_KEY.strip() != "":
