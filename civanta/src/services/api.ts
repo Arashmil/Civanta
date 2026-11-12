@@ -179,6 +179,20 @@ export const api = {
     });
   },
 
+  async refineGrievance(text: string, language: 'en' | 'kn' = 'en') {
+    return request<{
+      refinedText: string;
+      suggestedCategory: any;
+      suggestedPriority: any;
+      applicableLaws: string[];
+      missingDetails: string[];
+      evidenceChecklist: string[];
+    }>('/complaints/refine', {
+      method: 'POST',
+      body: JSON.stringify({ text, language }),
+    });
+  },
+
   async correctAI(id: string, data: { category?: string; priority?: string; reason: string }) {
     return request<any>(`/complaints/${id}/correct-ai`, {
       method: 'POST',

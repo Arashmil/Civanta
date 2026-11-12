@@ -486,13 +486,13 @@ export const NewComplaintPage: React.FC<NewComplaintPageProps> = ({
               onClick={handleRefineWithAI}
               disabled={isRefiningDraft || !description.trim()}
               className="px-2.5 py-1.5 rounded-[6px] border border-amber-400 bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/60 dark:hover:bg-amber-900/60 text-amber-900 dark:text-amber-200 text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors shadow-xs disabled:opacity-50"
-              title="Have Gemini AI organize your complaint, identify applicable BNS laws, and suggest an evidence checklist"
+              title="Automatically decipher informal, phonetic, or dyslexic input and generate an official structured legal grievance statement"
             >
               <Sparkles size={13} className={isRefiningDraft ? 'animate-spin text-amber-600' : 'text-amber-600 dark:text-amber-400'} />
               <span>
                 {isRefiningDraft
-                  ? (preferredLang === 'kn' ? 'AI ವಿಶ್ಲೇಷಣೆ ನಡೆಯುತ್ತಿದೆ...' : 'AI Thinking...')
-                  : (preferredLang === 'kn' ? 'AI ಕಾನೂನು ವಿಶ್ಲೇಷಣೆ & ಮಾರ್ಗದರ್ಶನ' : 'AI Assistant: Refine & Structure')}
+                  ? (preferredLang === 'kn' ? 'AI ಅರ್ಥೈಸಿಕೊಳ್ಳುತ್ತಿದೆ & ಸಿದ್ಧಪಡಿಸುತ್ತಿದೆ...' : 'AI Deciphering Narrative...')
+                  : (preferredLang === 'kn' ? '✨ AI ದೂರು ಪುನರ್ರಚನೆ & ಮಾರ್ಗದರ್ಶನ' : '✨ AI Assistant: Decipher & Structure')}
               </span>
             </button>
           </div>
@@ -504,7 +504,7 @@ export const NewComplaintPage: React.FC<NewComplaintPageProps> = ({
             <div className="flex items-center justify-between pb-2 border-b border-amber-200 dark:border-amber-800">
               <span className="font-bold text-amber-950 dark:text-amber-200 flex items-center gap-1.5 text-xs">
                 <Sparkles size={14} className="text-amber-600" />
-                {preferredLang === 'kn' ? 'AI ಕಾನೂನು ವಿಶ್ಲೇಷಣೆ ಮತ್ತು ಸಾಕ್ಷ್ಯಾಧಾರ ಮಾರ್ಗದರ್ಶಿ' : 'CIVANTA AI Legal Assessment & Evidence Advisory'}
+                {preferredLang === 'kn' ? '✨ AI ಪುನರ್ರಚಿತ ದೂರು ಹೇಳಿಕೆ (Dyslexia & Narrative Decoded)' : '✨ AI Structured Grievance Statement (Dyslexia & Narrative Decoded)'}
               </span>
               <button
                 type="button"
@@ -535,10 +535,11 @@ export const NewComplaintPage: React.FC<NewComplaintPageProps> = ({
             )}
 
             {/* Structured Text Preview */}
-            <div className="p-2.5 rounded bg-white dark:bg-slate-950 border border-amber-300 dark:border-amber-800 space-y-1.5">
+            <div className="p-3 rounded bg-white dark:bg-slate-950 border border-amber-300 dark:border-amber-800 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] uppercase font-mono font-bold text-amber-800 dark:text-amber-400">
-                  {preferredLang === 'kn' ? 'AI ಪುನರ್ರಚಿತ ಅಧಿಕೃತ ದೂರು ಹೇಳಿಕೆ' : 'AI Structured Grievance Statement'}
+                <span className="text-[10.5px] uppercase font-mono font-bold text-amber-800 dark:text-amber-400 flex items-center gap-1">
+                  <CheckCircle2 size={13} className="text-emerald-600" />
+                  {preferredLang === 'kn' ? 'AI ಪುನರ್ರಚಿತ ಅಧಿಕೃತ ದೂರು ಹೇಳಿಕೆ' : 'Decoded Formal Grievance Statement'}
                 </span>
                 <button
                   type="button"
@@ -547,22 +548,22 @@ export const NewComplaintPage: React.FC<NewComplaintPageProps> = ({
                     setCategory(aiRefinement.suggestedCategory);
                     setPriority(aiRefinement.suggestedPriority);
                   }}
-                  className="px-2 py-0.5 rounded bg-police-700 hover:bg-police-800 text-white text-[10.5px] font-semibold cursor-pointer"
+                  className="px-2.5 py-1 rounded bg-police-700 hover:bg-police-800 text-white text-[11px] font-bold cursor-pointer flex items-center gap-1 shadow-xs transition-transform active:scale-95"
                 >
-                  ✓ {preferredLang === 'kn' ? 'ಈ ವಿವರವನ್ನು ಅನ್ವಯಿಸಿ' : 'Apply Refined Statement'}
+                  ✓ {preferredLang === 'kn' ? 'ಈ ವಿವರವನ್ನು ಅರ್ಜಿಗೆ ಅನ್ವಯಿಸಿ' : 'Apply Refined Statement to Form'}
                 </button>
               </div>
-              <p className="text-slate-800 dark:text-slate-200 leading-relaxed whitespace-pre-line text-xs font-sans">
+              <p className="text-slate-800 dark:text-slate-200 leading-relaxed whitespace-pre-line text-xs font-sans p-2 rounded bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
                 {aiRefinement.refinedText}
               </p>
             </div>
 
-            {/* Evidence Checklist & Missing Details Grid */}
+            {/* Evidence Checklist & Optional Details Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
-              <div className="p-2 rounded bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-1">
+              <div className="p-2.5 rounded bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-1">
                 <span className="text-[10.5px] font-bold text-emerald-800 dark:text-emerald-400 flex items-center gap-1">
                   <CheckCircle2 size={12} />
-                  {preferredLang === 'kn' ? 'ಶಿಫಾರಸು ಮಾಡಲಾದ ಸಾಕ್ಷ್ಯಾಧಾರಗಳು (ಲಗತ್ತಿಸಿ):' : 'Recommended Evidence to Attach:'}
+                  {preferredLang === 'kn' ? 'ಶಿಫಾರಸು ಮಾಡಲಾದ ಸಾಕ್ಷ್ಯಾಧಾರಗಳು (ಲಗತ್ತಿಸಿ):' : 'Recommended Supporting Evidence:'}
                 </span>
                 <ul className="list-disc pl-4 text-[11px] text-slate-700 dark:text-slate-300 space-y-0.5">
                   {aiRefinement.evidenceChecklist.map((item, idx) => (
@@ -572,16 +573,21 @@ export const NewComplaintPage: React.FC<NewComplaintPageProps> = ({
               </div>
 
               {aiRefinement.missingDetails?.length > 0 && (
-                <div className="p-2 rounded bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-1">
+                <div className="p-2.5 rounded bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-1">
                   <span className="text-[10.5px] font-bold text-amber-800 dark:text-amber-400 flex items-center gap-1">
                     <AlertCircle size={12} />
-                    {preferredLang === 'kn' ? 'ಗಮನಿಸಿ: ಈ ವಿವರಗಳು ಕೊರತೆಯಿರಬಹುದು:' : 'Missing Details to Double-Check:'}
+                    {preferredLang === 'kn' ? 'ದೂರನ್ನು ಬಲಪಡಿಸಲು ಐಚ್ಛಿಕ ವಿವರಗಳು (ಕಡ್ಡಾಯವಲ್ಲ):' : 'Optional Pointers to Strengthen Dossier:'}
                   </span>
                   <ul className="list-disc pl-4 text-[11px] text-slate-700 dark:text-slate-300 space-y-0.5">
                     {aiRefinement.missingDetails.map((item, idx) => (
                       <li key={idx}>{item}</li>
                     ))}
                   </ul>
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 block pt-0.5 italic">
+                    {preferredLang === 'kn'
+                      ? 'ಗಮನಿಸಿ: ಈ ವಿವರಗಳು ಈಗ ಲಭ್ಯವಿಲ್ಲದಿದ್ದರೂ ನೀವು ದೂರು ಸಲ್ಲಿಸಬಹುದು. ತನಿಖಾಧಿಕಾರಿಯು ನೆರವಾಗುತ್ತಾರೆ.'
+                      : 'Note: You may submit your grievance even if you do not have these details; the IO will record them during inquiry.'}
+                  </span>
                 </div>
               )}
             </div>

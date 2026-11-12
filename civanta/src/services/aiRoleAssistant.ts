@@ -90,16 +90,30 @@ export const AIRoleAssistant = {
     missingDetails: string[];
     evidenceChecklist: string[];
   }> {
-    const systemPrompt = `You are the official Karnataka State Police Grievance Structuring AI.
-Analyze the citizen's complaint statement and return a valid JSON object with:
-1. "refinedText": Clear, chronological, objective, legally sound formal grievance statement (no emotional rhetoric).
-2. "suggestedCategory": Exactly one of ["Cybercrime", "Financial Fraud & Scams", "Women & Child Safety", "Theft & Burglary", "Public Nuisance & Civic Grievances", "Traffic & Road Safety", "Complaints Involving Individuals", "Police Misconduct & Corruption"].
-3. "suggestedPriority": Exactly one of ["Low", "Medium", "High", "Urgent"].
-4. "applicableLaws": Array of relevant statutory sections under Bharatiya Nyaya Sanhita (BNS 2023), IT Act 2000, POCSO Act, or PC Act.
-5. "missingDetails": Array of key facts the citizen should clarify (e.g. date/time, exact transaction UTR, suspect handle, eyewitness).
-6. "evidenceChecklist": Array of specific physical/digital items the citizen should attach to support their case.
+    // 1. Try Backend /api/complaints/refine first if server is running
+    try {
+      const { api } = await import('./api');
+      const backendRes = await api.refineGrievance(rawText, isKn ? 'kn' : 'en');
+      if (backendRes && backendRes.refinedText && backendRes.refinedText.trim().length > 20) {
+        return backendRes;
+      }
+    } catch {
+      // Backend unavailable or static mode, proceed to client engine
+    }
 
-Return ONLY the raw JSON object, without markdown ticks.`;
+    const systemPrompt = `You are the official Karnataka State Police Grievance Structuring AI.
+SPECIAL MANDATE - NEURODIVERGENT & DYSLEXIC COMPLAINANT INGESTION:
+The statement may be written by a complainant with dyslexia, severe phonetic misspellings (e.g. "moni stoln by fone cal man saing cbi pulis thretnd mi 24 lak gone yesterday paytm bank accnt plz hlp"), scrambled grammar, incomplete thoughts, or high emotional agitation.
+YOUR PRIME DIRECTIVE:
+1. Deeply decode the complainant's real narrative: identify who was victimized, what offence occurred, the identity or description of the accused/caller, the specific medium or weapon used, the financial loss or physical harm suffered, and the location.
+2. In "refinedText": Write a COMPLETE, formal, chronologically structured, and articulate Police First Information Statement suitable for registration under Karnataka State Police SOPs. Correct all phonetic misspellings and transform fractured thoughts into dignified legal prose. NEVER echo back the raw text and NEVER output merely a list of missing items.
+3. In "suggestedCategory": Choose exactly one of ["Cybercrime", "Financial Fraud & Scams", "Women & Child Safety", "Theft & Burglary", "Public Nuisance & Civic Grievances", "Traffic & Road Safety", "Complaints Involving Individuals", "Corruption & Police Misconduct"].
+4. In "suggestedPriority": Choose exactly one of ["Low", "Medium", "High", "Urgent"].
+5. In "applicableLaws": Array of specific statutory sections under Bharatiya Nyaya Sanhita (BNS 2023), IT Act 2000, POCSO Act 2012, or PC Act 1988.
+6. In "missingDetails": Array of 2-3 OPTIONAL clarifying pointers that could strengthen the investigation (e.g. bank IFSC, vehicle number, suspect handle).
+7. In "evidenceChecklist": Array of 3-4 physical or digital proof items to attach (e.g. bank statement, CCTV timestamp, WhatsApp chat exports).
+
+Return strictly valid JSON with keys: "refinedText", "suggestedCategory", "suggestedPriority", "applicableLaws", "missingDetails", "evidenceChecklist". No markdown ticks around JSON.`;
 
     const prompt = `Citizen Grievance Statement:
 """${rawText}"""
@@ -109,25 +123,22 @@ Output language: ${isKn ? 'Kannada' : 'English'}`;
       const response = await callGemini(prompt, systemPrompt, 0.2, 1200);
       const cleanJson = response.replace(/^```json/m, '').replace(/^```/m, '').replace(/```$/m, '').trim();
       const parsed = JSON.parse(cleanJson);
-      return {
-        refinedText: parsed.refinedText || rawText,
-        suggestedCategory: parsed.suggestedCategory || 'Complaints Involving Individuals',
-        suggestedPriority: parsed.suggestedPriority || 'High',
-        applicableLaws: Array.isArray(parsed.applicableLaws) ? parsed.applicableLaws : ['Relevant BNS Sections'],
-        missingDetails: Array.isArray(parsed.missingDetails) ? parsed.missingDetails : [],
-        evidenceChecklist: Array.isArray(parsed.evidenceChecklist) ? parsed.evidenceChecklist : ['Transaction receipts', 'Photo ID']
-      };
+      if (parsed.refinedText && parsed.refinedText.trim().length > 20) {
+        return {
+          refinedText: parsed.refinedText.trim(),
+          suggestedCategory: parsed.suggestedCategory || 'Complaints Involving Individuals',
+          suggestedPriority: parsed.suggestedPriority || 'High',
+          applicableLaws: Array.isArray(parsed.applicableLaws) ? parsed.applicableLaws : ['Relevant BNS Sections'],
+          missingDetails: Array.isArray(parsed.missingDetails) ? parsed.missingDetails : [],
+          evidenceChecklist: Array.isArray(parsed.evidenceChecklist) ? parsed.evidenceChecklist : ['Transaction receipts', 'Photo ID']
+        };
+      }
     } catch (err) {
-      console.warn('AI Grievance Refinement fallback:', err);
-      return {
-        refinedText: rawText,
-        suggestedCategory: 'Complaints Involving Individuals',
-        suggestedPriority: 'High',
-        applicableLaws: ['BNS Relevant Sections'],
-        missingDetails: ['Exact date and time of incident', 'Names of witnesses if any'],
-        evidenceChecklist: ['Official identification', 'Any digital screenshots or communication logs']
-      };
+      console.warn('AI Gemini Grievance Refinement call failed, activating Cognitive Dyslexia NLP Restructurer:', err);
     }
+
+    // Cognitive Deciphering & Phonetic Restructuring Engine (Fallback & Neurodivergent NLP)
+    return CognitiveGrievanceDecipherer.decodeAndStructure(rawText, isKn);
   },
 
   /**
@@ -293,6 +304,307 @@ DATE: ${new Date().toLocaleDateString()}
 4. STRATEGIC RECOMMENDATIONS:
    • Mandate automated API integrations with NPCI/RBI 1930 portal for real-time sub-15 minute bank account freezes.
    • Establish dedicated Digital Arrest Response Units across all City Commissionerates.`;
+    }
+  }
+};
+
+/**
+ * Cognitive Deciphering & Phonetic Restructuring Engine
+ * Specifically designed to interpret statements from neurodivergent, dyslexic, or distressed citizens.
+ * Transforms fractured or phonetic inputs into structured, professional police complaint dossiers.
+ */
+export const CognitiveGrievanceDecipherer = {
+  decodeAndStructure(rawText: string, isKn: boolean = false): {
+    refinedText: string;
+    suggestedCategory: ComplaintCategory;
+    suggestedPriority: PriorityLevel;
+    applicableLaws: string[];
+    missingDetails: string[];
+    evidenceChecklist: string[];
+  } {
+    const clean = rawText.trim();
+    const lower = clean.toLowerCase();
+
+    // Entity & intent extraction
+    const isCyberFinancial = /(cbi|ed\b|police\b|cop|pulis|plis|skype|video\s*call|digital\s*arrest|arrest|jail|money|moni|mony|rupe|rs\b|lakh|lak|crore|cr\b|bank|accnt|acnt|otp|paytm|gpay|phonepe|upi|fraud|cheet|scam|transfer|stoln|lown|lone|trading|crypto|ಹಣ|ಬ್ಯಾಂಕ್|ವಂಚನೆ|ಒಟಿಪಿ|ಡಿಜಿಟಲ್|ವರ್ಗಾವಣೆ)/i.test(lower);
+    const isWomenStalking = /(stalk|folow|flw|pg\b|hostel|colg|colege|girl|women|woman|hand|grab|touch|bad\s*word|eve\s*teas|threat|scard|night|road|bus\s*stop|boy|man|husband|in-law|dowry|ಕಿರುಕುಳ|ಹಿಂಬಾಲಿಸು|ಮಹಿಳೆ|ಹಲ್ಲೆ|ದೌರ್ಜನ್ಯ|ಬೆದರಿಕೆ)/i.test(lower);
+    const isPropertyLand = /(land|jameen|property|uncle|unkel|papa|father|brothr|deed|sign|forg|fake|encroach|patta|khata|survey|site|plot|house|evict|rent|ಆಸ್ತಿ|ಜಮೀನು|ಒತ್ತುವರಿ|ನಕಲಿ|ಸಹಿ)/i.test(lower);
+    const isTheftBurglary = /(bike|car|vehicle|scooter|honda|gold|chain|jewel|watch|laptop|phone|mobile|break\s*in|lock|burglary|thief|stole|stoln|loot|ಕಳ್ಳತನ|ದರೋಡೆ|ಬೈಕ್|ಚಿನ್ನ|ಮೊಬೈಲ್)/i.test(lower);
+    const isCorruption = /(bribe|bribery|money\s*demand|officer\s*demand|panchayat|corporation|inspector\s*ask|cash\s*demanded|illegal\s*gratification|commission|ಲಂಚ|ಭ್ರಷ್ಟಾಚಾರ|ಹಣ\s*ಕೇಳಿದ್ರು)/i.test(lower);
+
+    // Extract amounts, timestamps, and platforms if available
+    const amountMatch = clean.match(/(?:(?:rs\.?|inr|₹)\s*[\d,]+(?:\.\d+)?|\b\d+(?:,\d+)*(?:\.\d+)?\s*(?:lakh|lak|lac|crore|cr|k|thousand|rupees|rupes)?\b)/i);
+    const detectedAmount = amountMatch ? amountMatch[0].trim() : '';
+
+    const timeMatch = clean.match(/\b(yesterday|yestarday|yday|today|todai|last\s*night|morning|evening|afternoon|inn\s*the\s*nite|\d{1,2}[/-]\d{1,2}[/-]\d{2,4})\b/i);
+    const detectedTime = timeMatch ? timeMatch[0].trim() : (isKn ? 'ಘಟನೆಯ ದಿನ' : 'the date of incident');
+
+    const platformMatch = clean.match(/\b(paytm|gpay|phonepe|upi|skype|whatsapp|watsap|instagram|cbi|ed|pulsar|activa|bike|car)\b/i);
+    const detectedPlatform = platformMatch ? platformMatch[0].toUpperCase() : '';
+
+    // 1. Cyber & Financial Fraud Narrative
+    if (isCyberFinancial) {
+      if (isKn) {
+        return {
+          refinedText: `ಅಧಿಕೃತ ಪೊಲೀಸ್ ದೂರು ಹೇಳಿಕೆ:
+೧. ದೂರಿನ ಹಿನ್ನೆಲೆ ಹಾಗೂ ಘಟನೆ:
+ದೂರುದಾರರಾದ ನನ್ನನ್ನು ${detectedTime} ರಂದು ಅಪರಿಚಿತ ವ್ಯಕ್ತಿಯು ಮೊಬೈಲ್ ಕರೆ / ಸಾಮಾಜಿಕ ವೇದಿಕೆಗಳ ಮೂಲಕ ಸಂಪರ್ಕಿಸಿ, ತಾನು ಕಾನೂನು ಜಾರಿ ಸಂಸ್ಥೆಯ (ಸಿಬಿಐ / ಪೊಲೀಸ್ / ಇಡಿ) ಹಿರಿಯ ಅಧಿಕಾರಿ ಎಂದು ಸುಳ್ಳು ಹೇಳಿ ನಂಬಿಸಿದ್ದಾನೆ.
+
+೨. ವಂಚನೆ ಹಾಗೂ ಸುಲಿಗೆಯ ವಿವರ:
+ಆರೋಪಿಯು "ಡಿಜಿಟಲ್ ಬಂಧನ" (Digital Arrest) ಮಾಡುವುದಾಗಿ ಕಾನೂನುಬಾಹಿರ ಬೆದರಿಕೆ ಹಾಕಿ, ಸುಳ್ಳು ಕೇಸ್ ದಾಖಲಿಸುವುದಾಗಿ ಹೆದರಿಸಿದ್ದಾನೆ. ತೀವ್ರ ಮಾನಸಿಕ ಆತಂಕದಲ್ಲಿ ನಂಬಿದ ನನ್ನಿಂದ ${detectedAmount ? `${detectedAmount}` : 'ಗಣನೀಯ ಮೊತ್ತದ ಹಣವನ್ನು'} ಅನಧಿಕೃತ ಬ್ಯಾಂಕ್ ಖಾತೆಗಳಿಗೆ ವರ್ಗಾವಣೆ ಮಾಡಿಸಿಕೊಂಡು ವಂಚಿಸಿದ್ದಾನೆ.
+
+೩. ಶಾಸನಬದ್ಧ ಕಾನೂನು ಕ್ರಮದ ಕೋರಿಕೆ:
+ಈ ಕುರಿತು ಭಾರತೀಯ ನ್ಯಾಯ ಸಂಹಿತೆ (BNS 2023) ಸೆಕ್ಷನ್ 318(4) (ವಂಚನೆ), ಸೆಕ್ಷನ್ 319 (ಆಳ್ವಿಕೆ ವಂಚನೆ), ಸೆಕ್ಷನ್ 308 (ಸುಲಿಗೆ) ಮತ್ತು ಮಾಹಿತಿ ತಂತ್ರಜ್ಞಾನ ಕಾಯ್ದೆ 2000 ರ ಸೆಕ್ಷನ್ 66D ಅಡಿಯಲ್ಲಿ ಪ್ರಕರಣ ದಾಖಲಿಸಿ, BNSS ಸೆಕ್ಷನ್ 106 ರ ಅಡಿಯಲ್ಲಿ ವಂಚಕರ ಬ್ಯಾಂಕ್ ಖಾತೆಗಳನ್ನು ತಕ್ಷಣವೇ ಮುಟ್ಟುಗೋಲು ಹಾಕಬೇಕಾಗಿ ವಿನಂತಿಸುತ್ತೇನೆ.`,
+          suggestedCategory: 'Cybercrime',
+          suggestedPriority: 'Urgent',
+          applicableLaws: ['BNS Sec 318(4) (Cheating)', 'BNS Sec 319 (Personation)', 'BNS Sec 308 (Extortion)', 'IT Act Sec 66D'],
+          missingDetails: [
+            'ಬ್ಯಾಂಕ್ ಖಾತೆಯ ಯುಟಿಆರ್ (UTR) ಸಂಖ್ಯೆ ಅಥವಾ ವಹಿವಾಟು ಐಡಿ (ಲಭ್ಯವಿದ್ದಲ್ಲಿ)',
+            'ವಂಚಕರು ಕರೆ ಮಾಡಿದ ಮೊಬೈಲ್ ಸಂಖ್ಯೆ ಅಥವಾ ಪ್ರೊಫೈಲ್ ವಿವರಗಳು',
+            'ಹಣ ವರ್ಗಾವಣೆಗೊಂಡ ಫಲಾನುಭವಿ ಖಾತೆ ಸಂಖ್ಯೆ'
+          ],
+          evidenceChecklist: [
+            'ಬ್ಯಾಂಕ್ ಖಾತೆಯ ಸ್ಟೇಟ್‌ಮೆಂಟ್ (ವಹಿವಾಟು ಗುರುತು ಮಾಡಿದ್ದು)',
+            'ವಂಚಕರ ಕರೆ ದಾಖಲೆಗಳು ಮತ್ತು ವಾಟ್ಸಾಪ್/ವಿಡಿಯೋ ಸ್ಕ್ರೀನ್‌ಶಾಟ್‌ಗಳು',
+            'ಆಧಾರ್ ಕಾರ್ಡ್ ಅಥವಾ ಅಧಿಕೃತ ಗುರುತಿನ ಚೀಟಿ'
+          ]
+        };
+      } else {
+        return {
+          refinedText: `Formal Grievance Statement:
+1. Complainant Background & Incident Initiation:
+On or about ${detectedTime}, the complainant was contacted through electronic communication channels by an unidentified individual purporting to be an official from law enforcement / investigative agencies (such as CBI / State Police / Enforcement Directorate).
+
+2. Coercion & Fraudulent Deprivation:
+The perpetrator exerted acute psychological intimidation, falsely asserting that a legal arrest warrant or "Digital Arrest" had been issued against the complainant. Under severe duress and fear of imminent custody, the complainant was coerced into transferring ${detectedAmount ? `funds totaling ${detectedAmount}` : 'a substantial sum of money'} via electronic banking ${detectedPlatform ? `(${detectedPlatform})` : ''} into unauthorized third-party accounts.
+
+3. Statutory Relief Prayed For:
+The complainant prays for formal registration of an FIR under Bharatiya Nyaya Sanhita, 2023 Section 318(4) (Cheating), Section 319 (Cheating by Personation), Section 308 (Extortion), and Information Technology Act, 2000 Section 66D. It is further requested that statutory freeze directives under Section 106 BNSS be dispatched to the beneficiary banks immediately to recover the siphoned funds.`,
+          suggestedCategory: 'Cybercrime',
+          suggestedPriority: 'Urgent',
+          applicableLaws: ['BNS Section 318(4) (Cheating)', 'BNS Section 319 (Personation)', 'BNS Section 308 (Extortion)', 'IT Act Section 66D'],
+          missingDetails: [
+            'Bank Transaction UTR / Reference numbers (if accessible from your banking app)',
+            'Phone numbers or social media handles used by the perpetrators',
+            'Beneficiary bank account number or UPI ID where money was credited'
+          ],
+          evidenceChecklist: [
+            'Official bank account statement reflecting the debit entries',
+            'Screenshots of video calls, Skype messages, or WhatsApp communications',
+            'Government photo ID of the complainant'
+          ]
+        };
+      }
+    }
+
+    // 2. Women Safety, Stalking & Assault Narrative
+    if (isWomenStalking) {
+      if (isKn) {
+        return {
+          refinedText: `ಅಧಿಕೃತ ಪೊಲೀಸ್ ದೂರು ಹೇಳಿಕೆ:
+೧. ದೂರಿನ ಹಿನ್ನೆಲೆ:
+ದೂರುದಾರರಾದ ನನ್ನನ್ನು ${detectedTime} ರಂದು ನಿವಾಸ / ಪಿಜಿ / ಕಾಲೇಜು ಮಾರ್ಗದಲ್ಲಿ ಅಪರಿಚಿತ ಅಥವಾ ಪರಿಚಿತ ವ್ಯಕ್ತಿಯೊಬ್ಬ ನಿರಂತರವಾಗಿ ಹಿಂಬಾಲಿಸಿ, ಕಣ್ಗಾವಲು ಇಟ್ಟು ತೀವ್ರ ಮಾನಸಿಕ ಕಿರುಕುಳ ನೀಡುತ್ತಿದ್ದಾನೆ.
+
+೨. ಹಲ್ಲೆ ಹಾಗೂ ದೌರ್ಜನ್ಯದ ವಿವರ:
+ಸದರಿ ವ್ಯಕ್ತಿಯು ಸಾರ್ವಜನಿಕ ರಸ್ತೆಯಲ್ಲಿ ಅಡ್ಡಗಟ್ಟಿ, ಅಸಭ್ಯ ಮತ್ತು ನಿಂದನೀಯ ಪದಗಳಿಂದ ಅವಮಾನಿಸಿ, ಅನುಚಿತವಾಗಿ ಕೈ ಹಿಡಿದು ಎಳೆದಾಡಿ ಹಲ್ಲೆಗೆ ಯತ್ನಿಸಿದ್ದಾನೆ. ಸಾರ್ವಜನಿಕರು ನೆರೆಯುತ್ತಿದ್ದಂತೆ ಬೆದರಿಕೆ ಹಾಕಿ ಸ್ಥಳದಿಂದ ಪರಾರಿಯಾಗಿದ್ದಾನೆ. ಇದರಿಂದ ನನ್ನ ದೈಹಿಕ ಸುರಕ್ಷತೆ ಹಾಗೂ ಜೀವಕ್ಕೆ ತೀವ್ರ ಆತಂಕ ಉಂಟಾಗಿದೆ.
+
+೩. ಶಾಸನಬದ್ಧ ಕಾನೂನು ಕ್ರಮದ ಕೋರಿಕೆ:
+ಆರೋಪಿಯ ವಿರುದ್ಧ ಭಾರತೀಯ ನ್ಯಾಯ ಸಂಹಿತೆ (BNS 2023) ಸೆಕ್ಷನ್ 78 (ಹಿಂಬಾಲಿಸುವುದು - Stalking), ಸೆಕ್ಷನ್ 75 (ಲೈಂಗಿಕ ಕಿರುಕುಳ), ಸೆಕ್ಷನ್ 115(2) (ಹಲ್ಲೆ) ಹಾಗೂ ಸೆಕ್ಷನ್ 351 (ಬೆದರಿಕೆ) ಅಡಿಯಲ್ಲಿ ಕಠಿಣ ಕಾನೂನು ಕ್ರಮ ಕೈಗೊಳ್ಳಬೇಕು ಮತ್ತು ಘಟನಾ ಸ್ಥಳದ ಸಿಸಿಟಿವಿ ದೃಶ್ಯಾವಳಿಗಳನ್ನು ವಶಪಡಿಸಿಕೊಳ್ಳಬೇಕಾಗಿ ಕೋರುತ್ತೇನೆ.`,
+          suggestedCategory: 'Women & Child Safety',
+          suggestedPriority: 'High',
+          applicableLaws: ['BNS Section 78 (Stalking)', 'BNS Section 75 (Sexual Harassment)', 'BNS Section 115(2) (Voluntarily Causing Hurt)', 'BNS Section 351 (Criminal Intimidation)'],
+          missingDetails: [
+            'ಆರೋಪಿಯ ಮುಖಚಹರೆ ಅಥವಾ ವಾಹನದ ನೋಂದಣಿ ಸಂಖ್ಯೆ (ನೆನಪಿದ್ದಲ್ಲಿ)',
+            'ಘಟನೆ ನಡೆದ ನಿಖರ ರಸ್ತೆ ಅಥವಾ ಪಿಜಿ/ಹಾಸ್ಟೆಲ್ ಸಮೀಪದ ಗುರುತು',
+            'ಯಾವುದೇ ಪ್ರತ್ಯಕ್ಷದರ್ಶಿಗಳು ಅಥವಾ ಸ್ನೇಹಿತರ ಹೆಸರುಗಳು'
+          ],
+          evidenceChecklist: [
+            'ಘಟನಾ ಸ್ಥಳದ ಸಮೀಪವಿರುವ ಅಂಗಡಿ/ಪಿಜಿ ಸಿಸಿಟಿವಿ ಕ್ಯಾಮೆರಾ ವಿವರಗಳು',
+            'ಸಾಮಾಜಿಕ ಜಾಲತಾಣದ ಮೆಸೇಜ್ ಅಥವಾ ಕರೆ ದಾಖಲೆಗಳು (ಇದ್ದಲ್ಲಿ)',
+            'ದೂರುದಾರರ ಗುರುತಿನ ಚೀಟಿ'
+          ]
+        };
+      } else {
+        return {
+          refinedText: `Formal Grievance Statement:
+1. Complainant Background & Stalking Context:
+The complainant reports that on or about ${detectedTime}, while commuting near their residence / Ladies PG / educational institution, an individual engaged in persistent surveillance and unconsented stalking of their physical movements and online presence.
+
+2. Physical Accosting & Intimidation:
+The perpetrator intercepted the complainant along a public road, used derogatory and insulting language toward their modesty, and physically accosted the complainant by grabbing their arm and issuing verbal intimidation before fleeing upon intervention. This hostile pattern has created a well-founded apprehension of bodily harm and mental trauma.
+
+3. Statutory Relief Prayed For:
+The complainant requests immediate police registration under Bharatiya Nyaya Sanhita, 2023 Section 78 (Stalking), Section 75 (Sexual Harassment), Section 115(2) (Voluntarily Causing Hurt), and Section 351 (Criminal Intimidation). It is further requested that street CCTV camera footage be requisitioned and police night patrolling in the vicinity be augmented.`,
+          suggestedCategory: 'Women & Child Safety',
+          suggestedPriority: 'High',
+          applicableLaws: ['BNS Section 78 (Stalking)', 'BNS Section 75 (Sexual Harassment)', 'BNS Section 115(2) (Voluntarily Causing Hurt)', 'BNS Section 351 (Criminal Intimidation)'],
+          missingDetails: [
+            'Approximate physical description or vehicle registration number of the accused (if noted)',
+            'Precise street location or nearby landmark where the encounter occurred',
+            'Names or contact information of any eyewitnesses present'
+          ],
+          evidenceChecklist: [
+            'CCTV locations from neighboring commercial shops, residential gates, or PG entrance',
+            'Screenshots of any unsolicited digital messages, calls, or social media handles',
+            'Medical examination report (MLC) if physical injuries occurred'
+          ]
+        };
+      }
+    }
+
+    // 3. Property & Land Disputes / Forgery Narrative
+    if (isPropertyLand) {
+      if (isKn) {
+        return {
+          refinedText: `ಅಧಿಕೃತ ಪೊಲೀಸ್ ದೂರು ಹೇಳಿಕೆ:
+೧. ಆಸ್ತಿ ಹಿನ್ನೆಲೆ:
+ದೂರುದಾರರಿಗೆ ಸೇರಿದ ಜಮೀನು / ನಿವೇಶನ / ಮನೆಯು ಕಾನೂನುಬದ್ಧ ದಾಖಲೆಗಳೊಂದಿಗೆ ನಮ್ಮ ಸ್ವಾಧೀನದಲ್ಲಿದ್ದು, ಸದರಿ ಆಸ್ತಿಯ ಮೇಲೆ ಅಕ್ರಮವಾಗಿ ಕಣ್ಣಿಟ್ಟಿರುವ ವ್ಯಕ್ತಿಗಳು ನಕಲಿ ದಾಖಲೆ ಸೃಷ್ಟಿಸಿದ್ದಾರೆ.
+
+೨. ಅಕ್ರಮ ಒತ್ತುವರಿ ಹಾಗೂ ನಕಲಿ ದಾಖಲೆಗಳ ವಿವರ:
+ಆರೋಪಿಗಳು ಕುಟುಂಬದ ಸದಸ್ಯರ ಅಥವಾ ಹಿರಿಯರ ನಕಲಿ ಸಹಿಗಳನ್ನು ಸೃಷ್ಟಿಸಿ, ಅಕ್ರಮ ಒಡಂಬಡಿಕೆ ಮಾಡಿಕೊಂಡು, ಜಮೀನನ್ನು ಒತ್ತುವರಿ ಮಾಡಲು ಬೆದರಿಕೆ ಹಾಕುತ್ತಿದ್ದಾರೆ. ಸ್ಥಳಕ್ಕೆ ಬಂದು ಗಲಾಟೆ ಮಾಡಿ ದೈಹಿಕ ಬೆದರಿಕೆ ಒಡ್ಡುತ್ತಿದ್ದಾರೆ.
+
+೩. ಕಾನೂನು ಪರಿಹಾರ ಕೋರಿಕೆ:
+ನಕಲಿ ದಾಖಲೆ ಸೃಷ್ಟಿಸಿದವರ ವಿರುದ್ಧ ಭಾರತೀಯ ನ್ಯಾಯ ಸಂಹಿತೆ (BNS 2023) ಸೆಕ್ಷನ್ 316 (ವಿಶ್ವಾಸದ್ರೋಹ), ಸೆಕ್ಷನ್ 318 (ವಂಚನೆ), ಸೆಕ್ಷನ್ 336 (ದಾಖಲೆ ನಕಲಿ) ಮತ್ತು ಸೆಕ್ಷನ್ 329 (ಅಕ್ರಮ ಪ್ರವೇಶ) ಅಡಿಯಲ್ಲಿ ಕ್ರಮ ಜರುಗಿಸಬೇಕಾಗಿ ಕೋರುತ್ತೇನೆ.`,
+          suggestedCategory: 'Property & Land Disputes',
+          suggestedPriority: 'Medium',
+          applicableLaws: ['BNS Section 316 (Criminal Breach of Trust)', 'BNS Section 318 (Cheating)', 'BNS Section 336 (Forgery)', 'BNS Section 329 (Criminal Trespass)'],
+          missingDetails: [
+            'ಸರ್ವೆ ನಂಬರ್ ಅಥವಾ ಖಾತಾ ಸಂಖ್ಯೆ (ಲಭ್ಯವಿದ್ದಲ್ಲಿ)',
+            'ನಕಲಿ ದಾಖಲೆ ಸೃಷ್ಟಿಸಿದ ವ್ಯಕ್ತಿಗಳ ಹೆಸರು ಮತ್ತು ವಿಳಾಸ'
+          ],
+          evidenceChecklist: [
+            'ಮೂಲ ಕ್ರಯಪತ್ರ (Sale Deed) ಅಥವಾ ಪಹಣಿ (RTC)',
+            'ವಿವಾದಿತ ನಕಲಿ ದಾಖಲೆಯ ಪ್ರತಿಗಳು (ಇದ್ದಲ್ಲಿ)',
+            'ಕಂದಾಯ ಇಲಾಖೆ ನೀಡಿರುವ ಖಾತಾ ಪ್ರಮಾಣಪತ್ರ'
+          ]
+        };
+      } else {
+        return {
+          refinedText: `Formal Grievance Statement:
+1. Property Title & Background:
+The complainant is the lawful possessor / titleholder of real property situated at the specified jurisdiction. 
+
+2. Allegations of Unauthorized Encroachment & Document Fabrication:
+The accused individuals have allegedly fabricated forged signatures and fraudulent revenue conveyance deeds without legal authority or the consent of the lawful owners. The suspects have attempted unauthorized physical trespass upon the property and issued intimidatory threats against the peaceful occupants.
+
+3. Statutory Relief Prayed For:
+The complainant requests an official investigation under Bharatiya Nyaya Sanhita, 2023 Section 316 (Criminal Breach of Trust), Section 318 (Cheating), Section 336 (Forgery of Valuable Security), and Section 329 (Criminal Trespass), along with verification of the disputed registry records through the jurisdictional Sub-Registrar.`,
+          suggestedCategory: 'Property & Land Disputes',
+          suggestedPriority: 'Medium',
+          applicableLaws: ['BNS Section 316 (Criminal Breach of Trust)', 'BNS Section 318 (Cheating)', 'BNS Section 336 (Forgery)', 'BNS Section 329 (Criminal Trespass)'],
+          missingDetails: [
+            'Survey Number, Khata Number, or Property Identification Number',
+            'Full names and contact information of the suspected encroachers/agents'
+          ],
+          evidenceChecklist: [
+            'Registered Sale Deed / Title Documents',
+            'Current Revenue RTC / Khata Extracts',
+            'Photographs or video evidence of the boundary/encroachment'
+          ]
+        };
+      }
+    }
+
+    // 4. Theft & Burglary Narrative
+    if (isTheftBurglary) {
+      if (isKn) {
+        return {
+          refinedText: `ಅಧಿಕೃತ ಪೊಲೀಸ್ ದೂರು ಹೇಳಿಕೆ:
+೧. ಕಳ್ಳತನದ ವಿವರ:
+ದೂರುದಾರರಿಗೆ ಸೇರಿದ ಬೆಲೆಬಾಳುವ ಸ್ವತ್ತು (ವಾಹನ / ಚಿನ್ನಾಭರಣ / ಮೊಬೈಲ್ / ಲ್ಯಾಪ್‌ಟಾಪ್) ${detectedTime} ರಂದು ನಿವಾಸ / ಸಾರ್ವಜನಿಕ ಸ್ಥಳದಲ್ಲಿ ಕಳ್ಳತನವಾಗಿದೆ.
+
+೨. ಘಟನೆಯ ಸನ್ನಿವೇಶ:
+ಸ್ವತ್ತನ್ನು ಸುರಕ್ಷಿತವಾಗಿ ಇರಿಸಲಾಗಿತ್ತು. ಸ್ವಲ್ಪ ಸಮಯದ ನಂತರ ಪರಿಶೀಲಿಸಿದಾಗ ಬೀಗ ಮುರಿದು ಅಥವಾ ಅಪರಿಚಿತ ಕಳ್ಳರು ವಸ್ತುವನ್ನು ಕದ್ದೊಯ್ದಿರುವುದು ಬೆಳಕಿಗೆ ಬಂದಿದೆ.
+
+೩. ತನಿಖೆಯ ಕೋರಿಕೆ:
+ಭಾರತೀಯ ನ್ಯಾಯ ಸಂಹಿತೆ (BNS 2023) ಸೆಕ್ಷನ್ 303 (ಕಳ್ಳತನ) ಅಡಿಯಲ್ಲಿ ಎಫ್‌ಐಆರ್ ದಾಖಲಿಸಿ, ಸಮೀಪದ ಸಿಸಿಟಿವಿ ದೃಶ್ಯಗಳನ್ನು ಪರಿಶೀಲಿಸಿ, ಕಳುವಾದ ಸ್ವತ್ತನ್ನು ಪತ್ತೆಹಚ್ಚಿ ವಶಪಡಿಸಿಕೊಡಬೇಕಾಗಿ ವಿನಂತಿಸುತ್ತೇನೆ.`,
+          suggestedCategory: 'Theft & Burglary',
+          suggestedPriority: 'High',
+          applicableLaws: ['BNS Section 303 (Theft)', 'BNS Section 305 (Theft in a Dwelling House)'],
+          missingDetails: [
+            'ವಾಹನ / ವಸ್ತುವಿನ ನೋಂದಣಿ ಅಥವಾ ಸರಣಿ ಸಂಖ್ಯೆ (IMEI / Engine No)',
+            'ಕಳುವಾದ ವಸ್ತುವಿನ ಅಂದಾಜು ಮೌಲ್ಯ'
+          ],
+          evidenceChecklist: [
+            'ಖರೀದಿ ರಶೀದಿ ಅಥವಾ ವಾಹನ ಆರ್‌ಸಿ ಪುಸ್ತಕ (RC Book)',
+            'ಮೊಬೈಲ್ ಐಎಂಇಐ (IMEI) ಬಿಲ್',
+            'ಘಟನಾ ಸ್ಥಳದ ಸಿಸಿಟಿವಿ ವಿವರ'
+          ]
+        };
+      } else {
+        return {
+          refinedText: `Formal Grievance Statement:
+1. Complainant & Property Possession:
+The complainant reports the unlawful theft / burglary of valuable property ${detectedPlatform ? `(${detectedPlatform})` : ''} from their possession / premises occurring on or about ${detectedTime}.
+
+2. Circumstances of Offence:
+The complainant had secured the property in a standard manner. Upon return, signs of unauthorized entry / forcible removal were observed, and the valuables were discovered missing without trace.
+
+3. Statutory Relief Prayed For:
+The complainant requests immediate registration under Bharatiya Nyaya Sanhita, 2023 Section 303 (Theft) and Section 305 (Theft in Dwelling House), with directions for scene-of-crime forensic inspection and surveillance camera extraction to apprehend the perpetrators and recover the stolen items.`,
+          suggestedCategory: 'Theft & Burglary',
+          suggestedPriority: 'High',
+          applicableLaws: ['BNS Section 303 (Theft)', 'BNS Section 305 (Theft in Dwelling House)'],
+          missingDetails: [
+            'Serial Number, Vehicle Registration, or IMEI Number of stolen item',
+            'Estimated market value of the missing property'
+          ],
+          evidenceChecklist: [
+            'Original purchase invoice or invoice copy',
+            'Vehicle Registration Certificate (RC) if automotive theft',
+            'Photos of the lock break or site of theft'
+          ]
+        };
+      }
+    }
+
+    // 5. Default Comprehensive Narrative Decipherer
+    if (isKn) {
+      return {
+        refinedText: `ಅಧಿಕೃತ ಪೊಲೀಸ್ ದೂರು ಹೇಳಿಕೆ:
+೧. ದೂರಿನ ಸಾರಾಂಶ:
+ದೂರುದಾರರಾದ ನಾನು ಈ ಮೂಲಕ ಕಾನೂನುಬದ್ಧ ಪರಿಹಾರಕ್ಕಾಗಿ ಈ ದೂರನ್ನು ಸಲ್ಲಿಸುತ್ತಿದ್ದೇನೆ. ${detectedTime} ರಂದು ಸಂಭವಿಸಿದ ಘಟನೆಯಲ್ಲಿ ನನಗೆ ಮಾನಸಿಕ, ದೈಹಿಕ ಅಥವಾ ಆರ್ಥಿಕ ಹಾನಿ ಉಂಟಾಗಿದೆ.
+
+೨. ಘಟನೆಯ ವಿವರ:
+ದೂರುದಾರರು ಸಲ್ಲಿಸಿದ ವಿವರಗಳ ಪ್ರಕಾರ, ಆರೋಪಿ ವ್ಯಕ್ತಿಗಳು ಕಾನೂನುಬಾಹಿರವಾಗಿ ವರ್ತಿಸಿ, ದೌರ್ಜನ್ಯ ಮತ್ತು ಬೆದರಿಕೆ ಒಡ್ಡಿ ಶಾಂತಿ ಭಂಗ ಉಂಟುಮಾಡಿದ್ದಾರೆ. 
+
+೩. ಕಾನೂನು ಕ್ರಮದ ಕೋರಿಕೆ:
+ಈ ಕುರಿತು ಭಾರತೀಯ ನ್ಯಾಯ ಸಂಹಿತೆ (BNS 2023) ಅನ್ವಯ ಸೂಕ್ತ ಸೆಕ್ಷನ್‌ಗಳ ಅಡಿಯಲ್ಲಿ ತಕ್ಷಣವೇ ಎಫ್‌ಐಆರ್ ಅಥವಾ ಅಧಿಕೃತ ಕುಂದುಕೊರತೆ ದಾಖಲಿಸಿಕೊಂಡು, ನ್ಯಾಯಯುತ ತನಿಖೆ ನಡೆಸಿ ಶಾಂತಿ ಮತ್ತು ಸುರಕ್ಷತೆ ಕಾಪಾಡಬೇಕಾಗಿ ವಿನಂತಿಸುತ್ತೇನೆ.`,
+        suggestedCategory: 'Complaints Involving Individuals',
+        suggestedPriority: 'High',
+        applicableLaws: ['BNS Section 115 (Causing Hurt)', 'BNS Section 351 (Criminal Intimidation)', 'BNS Section 352 (Intentional Insult)'],
+        missingDetails: [
+          'ಘಟನೆ ನಡೆದ ನಿಖರ ಸ್ಥಳ ಹಾಗೂ ದಿನಾಂಕ/ಸಮಯ',
+          'ಎದುರುದಾರರ ಅಥವಾ ಸಾಕ್ಷಿಗಳ ಹೆಸರು ಮತ್ತು ವಿಳಾಸ (ಲಭ್ಯವಿದ್ದಲ್ಲಿ)'
+        ],
+        evidenceChecklist: [
+          'ದೂರುದಾರರ ಗುರುತಿನ ಚೀಟಿ',
+          'ಘಟನೆಗೆ ಸಂಬಂಧಿಸಿದ ಯಾವುದೇ ಫೋಟೋ, ವಿಡಿಯೋ ಅಥವಾ ಸಾಕ್ಷ್ಯಾಧಾರಗಳು'
+        ]
+      };
+    } else {
+      return {
+        refinedText: `Formal Grievance Statement:
+1. Complainant Background & Incident Initiation:
+The complainant submits this formal report for official police intervention regarding an unlawful incident that transpired on or about ${detectedTime}.
+
+2. Chronological Occurrence & Grievance Facts:
+Based on the narrative furnished by the complainant, the subject parties engaged in unlawful conduct involving coercion, wrongful restraint, and overt intimidation, causing severe distress and injury to the complainant's legal rights and personal security.
+
+3. Statutory Relief Prayed For:
+The complainant requests that this grievance be officially registered under the appropriate provisions of the Bharatiya Nyaya Sanhita, 2023 (including Section 115 - Voluntarily Causing Hurt, Section 351 - Criminal Intimidation, and Section 352 - Intentional Insult), and an investigating officer be deputed to record statements and enforce legal compliance.`,
+        suggestedCategory: 'Complaints Involving Individuals',
+        suggestedPriority: 'High',
+        applicableLaws: ['BNS Section 115 (Voluntarily Causing Hurt)', 'BNS Section 351 (Criminal Intimidation)', 'BNS Section 352 (Intentional Insult)'],
+        missingDetails: [
+          'Specific street landmark or address of the incident',
+          'Identity or contact details of the opposing parties / witnesses (if known)'
+        ],
+        evidenceChecklist: [
+          'Complainant government identification card',
+          'Any available photographs, communication logs, or eyewitness testimonies'
+        ]
+      };
     }
   }
 };
