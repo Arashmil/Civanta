@@ -317,7 +317,7 @@ export const api = {
   // --- CHATBOT ---
   async sendChatMessage(message: string, history: Array<{ role: string; content: string }> = [], language: 'en' | 'kn' = 'en') {
     try {
-      return await request<{ reply: string; complaint_found?: any; disclaimer: string }>('/chat', {
+      return await request<{ reply: string; complaint_found?: any; disclaimer: string; source?: 'gemini-live' | 'neural-nlp' }>('/chat', {
         method: 'POST',
         body: JSON.stringify({ message, history, language }),
       });
