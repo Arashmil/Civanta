@@ -4,6 +4,8 @@
  * to Karnataka State Police (KSP) official Districts, Divisions, and Jurisdictional Stations.
  */
 
+import { getEffectiveGeminiKey } from './aiRoleAssistant';
+
 export interface LocationInput {
   latitude: number;
   longitude: number;
@@ -191,7 +193,7 @@ export class PoliceJurisdictionService {
     const textBlob = `${loc.address || ''} ${loc.road || ''} ${loc.suburb || ''} ${loc.city || ''} ${loc.district || ''} ${loc.pinCode || ''}`.toLowerCase();
 
     // 1. Try Gemini AI if API Key is configured
-    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+    const apiKey = getEffectiveGeminiKey();
     if (apiKey) {
       try {
         const aiResult = await this.queryGeminiJurisdiction(apiKey, loc, textBlob);

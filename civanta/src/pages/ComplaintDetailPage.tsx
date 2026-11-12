@@ -13,6 +13,7 @@ import { FeedbackModal } from '../components/complaints/FeedbackModal';
 import { ReopenModal } from '../components/complaints/ReopenModal';
 import { api } from '../services/api';
 import { TranslationService } from '../services/translator';
+import { AIRoleAssistant } from '../services/aiRoleAssistant';
 import { SLACountdown } from '../components/common/SLACountdown';
 import { EscalationLadderStepper } from '../components/complaints/EscalationLadderStepper';
 import { LocationTrackingRadar } from '../components/common/LocationTrackingRadar';
@@ -42,7 +43,9 @@ import {
   Globe,
   X,
   ShieldCheck,
-  FileText
+  FileText,
+  Copy,
+  Check
 } from 'lucide-react';
 
 interface ComplaintDetailPageProps {
@@ -73,7 +76,66 @@ export const ComplaintDetailPage: React.FC<ComplaintDetailPageProps> = ({
   const [correctPriority, setCorrectPriority] = useState<string>(complaint?.priority || 'High');
   const [correctReason, setCorrectReason] = useState<string>('');
   const [isSubmittingCorrection, setIsSubmittingCorrection] = useState(false);
-  const [activeTab, setActiveTab] = useState<'overview' | 'timeline' | 'evidence'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'timeline' | 'evidence' | 'ai_copilot'>('overview');
+  const [isGeneratingAICopilot, setIsGeneratingAICopilot] = useState(false);
+  const [aiCopilotContent, setAiCopilotContent] = useState<string | null>(null);
+  const [aiCopilotTitle, setAiCopilotTitle] = useState<string>('Statutory Investigation Roadmap (BNSS 2023)');
+  const [isCopiedNotice, setIsCopiedNotice] = useState(false);
+
+  const handleGenerateInvestigationPlan = async () => {
+    setIsGeneratingAICopilot(true);
+    setAiCopilotTitle('Statutory Investigation Roadmap (BNSS 2023)');
+    setActiveTab('ai_copilot');
+    try {
+      const plan = await AIRoleAssistant.generateInvestigationPlan(complaint, language === 'kn');
+      setAiCopilotContent(plan);
+    } catch (err) {
+      console.warn('AI Investigation Plan error:', err);
+    } finally {
+      setIsGeneratingAICopilot(false);
+    }
+  };
+
+  const handleGenerateNotice = async (type: 'bank_freeze' | 'telecom_cdr' | 'suspect_summons') => {
+    setIsGeneratingAICopilot(true);
+    const titleMap = {
+      bank_freeze: 'Section 106 BNSS / Section 94 BNSS Emergency Bank Account Freeze Requisition',
+      telecom_cdr: 'Section 67C IT Act Telecom Preservation Order',
+      suspect_summons: 'Section 35(3) BNSS Summons to Suspect / Witness'
+    };
+    setAiCopilotTitle(titleMap[type]);
+    setActiveTab('ai_copilot');
+    try {
+      const notice = await AIRoleAssistant.generateStatutoryNotice(complaint, type, language === 'kn');
+      setAiCopilotContent(notice);
+    } catch (err) {
+      console.warn('AI Notice error:', err);
+    } finally {
+      setIsGeneratingAICopilot(false);
+    }
+  };
+
+  const handleGenerateDirective = async () => {
+    setIsGeneratingAICopilot(true);
+    setAiCopilotTitle('Supervisory Command Directive (24h SLA Compliance)');
+    setActiveTab('ai_copilot');
+    try {
+      const dir = await AIRoleAssistant.generateSupervisorDirective(complaint, language === 'kn');
+      setAiCopilotContent(dir);
+    } catch (err) {
+      console.warn('AI Directive error:', err);
+    } finally {
+      setIsGeneratingAICopilot(false);
+    }
+  };
+
+  const handleCopyNotice = () => {
+    if (aiCopilotContent) {
+      navigator.clipboard.writeText(aiCopilotContent);
+      setIsCopiedNotice(true);
+      setTimeout(() => setIsCopiedNotice(false), 1500);
+    }
+  };
 
   if (!complaint) {
     return (
@@ -451,6 +513,27 @@ export const ComplaintDetailPage: React.FC<ComplaintDetailPageProps> = ({
           }`}
         >
           {t('Evidence & Documents')} ({complaint.documents.length})
+        </button>
+
+        <button
+          onClick={() => {
+            setActiveTab('ai_copilot');
+            if (!aiCopilotContent) {
+              if (isSupervisor) {
+                handleGenerateDirective();
+              } else {
+                handleGenerateInvestigationPlan();
+              }
+            }
+          }}
+          className={`py-3 px-4 border-b-2 cursor-pointer transition-colors flex items-center gap-1.5 ${
+            activeTab === 'ai_copilot'
+              ? 'border-amber-500 text-amber-700 dark:text-amber-400 font-bold'
+              : 'border-transparent text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <Sparkles size={13} className="text-amber-500" />
+          <span>CIVANTA AI Copilot</span>
         </button>
       </div>
 
@@ -874,7 +957,142 @@ export const ComplaintDetailPage: React.FC<ComplaintDetailPageProps> = ({
         </div>
       )}
 
-      {/* Modals */}
+      {/* CIVANTA AI Copilot Panel */}
+      {activeTab === 'ai_copilot' && (
+        <div className={`p-4 ${tokens.cardClass} space-y-4`}>
+          {/* Top Bar with Prompt Triggers */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800 gap-3">
+            <div className="space-y-0.5">
+              <div className="flex items-center gap-1.5 font-bold text-xs uppercase tracking-wider text-amber-700 dark:text-amber-400">
+                <Sparkles size={14} />
+                <span>CIVANTA AI Police Copilot & Legal Assistant</span>
+              </div>
+              <p className="text-[11px] text-slate-500">
+                Active Reasoning Model: Google Gemini • Automated Legal Section Mapping & Formal Notice Generation
+              </p>
+            </div>
+
+            {/* Quick Generator Toolbar */}
+            <div className="flex flex-wrap items-center gap-1.5">
+              <button
+                type="button"
+                onClick={handleGenerateInvestigationPlan}
+                disabled={isGeneratingAICopilot}
+                className="px-2.5 py-1.5 rounded-[5px] bg-police-700 hover:bg-police-800 text-white text-xs font-semibold flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              >
+                <FileCheck size={12} />
+                <span>Investigation Plan</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleGenerateNotice('bank_freeze')}
+                disabled={isGeneratingAICopilot}
+                className="px-2.5 py-1.5 rounded-[5px] bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-600 flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              >
+                <Shield size={12} className="text-amber-400" />
+                <span>Sec 106 BNSS Freeze Notice</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleGenerateNotice('telecom_cdr')}
+                disabled={isGeneratingAICopilot}
+                className="px-2.5 py-1.5 rounded-[5px] bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-600 flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              >
+                <FileText size={12} className="text-sky-400" />
+                <span>Sec 67C IT Act Order</span>
+              </button>
+
+              {isSupervisor && (
+                <button
+                  type="button"
+                  onClick={handleGenerateDirective}
+                  disabled={isGeneratingAICopilot}
+                  className="px-2.5 py-1.5 rounded-[5px] bg-amber-500 hover:bg-amber-600 text-police-950 text-xs font-bold flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                >
+                  <ShieldAlert size={12} />
+                  <span>Supervisory Directive</span>
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Loading Indicator */}
+          {isGeneratingAICopilot && (
+            <div className="p-8 text-center space-y-2 bg-slate-50 dark:bg-slate-800/40 rounded-[6px] border border-slate-200 dark:border-slate-800">
+              <Sparkles size={24} className="text-amber-500 animate-spin mx-auto" />
+              <p className="font-bold text-xs text-slate-800 dark:text-slate-200">
+                Gemini AI Reasoning in Progress...
+              </p>
+              <p className="text-[11px] text-slate-500 font-mono">
+                Analyzing statutory provisions under Bharatiya Nagarik Suraksha Sanhita (BNSS 2023) and drafting document.
+              </p>
+            </div>
+          )}
+
+          {/* Document Content Display */}
+          {!isGeneratingAICopilot && aiCopilotContent && (
+            <div className="space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2.5 rounded bg-slate-100 dark:bg-slate-800/70 border border-slate-300 dark:border-slate-700">
+                <span className="font-bold text-xs text-slate-900 dark:text-white flex items-center gap-1.5">
+                  <FileText size={14} className="text-police-600 dark:text-police-400" />
+                  {aiCopilotTitle}
+                </span>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleCopyNotice}
+                    className="px-2 py-1 rounded bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 text-xs font-medium border border-slate-300 dark:border-slate-600 flex items-center gap-1 cursor-pointer"
+                  >
+                    {isCopiedNotice ? (
+                      <>
+                        <Check size={12} className="text-emerald-500" />
+                        <span>Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy size={12} />
+                        <span>Copy Text</span>
+                      </>
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => window.print()}
+                    className="px-2 py-1 rounded bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 text-xs font-medium border border-slate-300 dark:border-slate-600 flex items-center gap-1 cursor-pointer"
+                  >
+                    <Printer size={12} />
+                    <span>Print Requisition</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-[6px] bg-slate-950 text-slate-100 border border-slate-800 font-mono text-xs leading-relaxed whitespace-pre-line overflow-x-auto shadow-inner">
+                {aiCopilotContent}
+              </div>
+
+              <div className="p-2 rounded bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-[10.5px] text-amber-900 dark:text-amber-300 flex items-center gap-1.5">
+                <AlertTriangle size={13} className="text-amber-600 shrink-0" />
+                <span>
+                  Official Warning: Drafted by CIVANTA AI Police Legal Intelligence. The Investigating Officer (IO) must verify facts and append digital/manual signature before executing service.
+                </span>
+              </div>
+            </div>
+          )}
+
+          {!isGeneratingAICopilot && !aiCopilotContent && (
+            <div className="p-8 text-center space-y-2 text-slate-400">
+              <Sparkles size={22} className="mx-auto text-slate-300 dark:text-slate-600" />
+              <p className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                Select an option above to have Gemini AI analyze this case and generate statutory legal documents.
+              </p>
+            </div>
+          )}
+        </div>
+      )}
       <ReassignModal
         complaint={complaint}
         isOpen={isReassignOpen}
