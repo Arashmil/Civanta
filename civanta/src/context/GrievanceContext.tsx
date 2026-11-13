@@ -13,6 +13,7 @@ import {
 import { api } from '../services/api';
 import { StorageService } from '../services/storage';
 import { TranslationService } from '../services/translator';
+import { ClockService } from '../services/clockService';
 import { useAuth } from './AuthContext';
 
 interface SubmitComplaintParams {
@@ -283,6 +284,25 @@ export const GrievanceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       }
     } catch (err) {
       console.warn('Backend sync warning, using local baseline:', err);
+      const simNow = ClockService.getSimulatedTime();
+      const local = StorageService.getComplaints();
+      const evaluated = local.map(c => {
+        if (c.status === 'resolved' || c.status === 'closed') return c;
+        const deadline = new Date(c.deadlineDate || c.dueDate || c.createdAt);
+        const isPastDeadline = simNow.getTime() > deadline.getTime();
+        if (isPastDeadline && !c.isOverdue) {
+          return {
+            ...c,
+            isOverdue: true,
+            isEscalated: true,
+            status: (c.status === 'in_progress' ? 'overdue' : 'escalated') as any
+          };
+        }
+        return c;
+      });
+      setComplaints(evaluated);
+      setActionHistory(StorageService.getActionHistory());
+      setNotifications(StorageService.getNotifications());
     }
   }, []);
 
@@ -290,6 +310,15 @@ export const GrievanceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   useEffect(() => {
     refreshData();
   }, [currentUser, refreshData]);
+
+  // Listen for simulated clock changes (fast-forward, reset) and evaluate complaints
+  useEffect(() => {
+    const handleClockChange = () => {
+      refreshData();
+    };
+    window.addEventListener('civanta-clock-change', handleClockChange);
+    return () => window.removeEventListener('civanta-clock-change', handleClockChange);
+  }, [refreshData]);
 
   // Periodic deadline/notification poll (every 30s)
   useEffect(() => {

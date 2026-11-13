@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Complaint } from '../../types';
 import { Clock, AlertTriangle, ShieldAlert, CheckCircle2 } from 'lucide-react';
+import { ClockService } from '../../services/clockService';
 
 interface SLAProgressBarProps {
   complaint: Complaint;
@@ -8,6 +9,18 @@ interface SLAProgressBarProps {
 }
 
 export const SLAProgressBar: React.FC<SLAProgressBarProps> = ({ complaint, compact = false }) => {
+  const [simulatedNow, setSimulatedNow] = useState<Date>(() => ClockService.getSimulatedTime());
+
+  useEffect(() => {
+    const updateTime = () => setSimulatedNow(ClockService.getSimulatedTime());
+    window.addEventListener('civanta-clock-change', updateTime);
+    const interval = setInterval(updateTime, 5000);
+    return () => {
+      window.removeEventListener('civanta-clock-change', updateTime);
+      clearInterval(interval);
+    };
+  }, []);
+
   if (complaint.status === 'resolved' || complaint.status === 'closed') {
     return (
       <div className="flex items-center gap-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
@@ -17,8 +30,8 @@ export const SLAProgressBar: React.FC<SLAProgressBarProps> = ({ complaint, compa
     );
   }
 
-  const now = new Date();
-  const deadline = new Date(complaint.deadlineDate);
+  const now = simulatedNow;
+  const deadline = new Date(complaint.deadlineDate || complaint.dueDate || complaint.createdAt);
   const created = new Date(complaint.createdAt);
 
   const totalDurationMs = Math.max(1, deadline.getTime() - created.getTime());

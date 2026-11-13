@@ -1,6 +1,7 @@
 import { Complaint, AppNotification, ComplaintCategory, PriorityLevel } from '../types';
 import { StorageService } from './storage';
 import { AuditLogger } from './auditLogger';
+import { ClockService } from './clockService';
 
 export interface SLAEvaluationResult {
   totalChecked: number;
@@ -43,10 +44,10 @@ export class DeadlineService {
   /**
    * Main SLA Monitor loop - can be triggered on interval or on state load
    */
-  static checkAllDeadlines(): SLAEvaluationResult {
+  static checkAllDeadlines(customNow?: Date): SLAEvaluationResult {
     const complaints = StorageService.getComplaints();
     const notifications = StorageService.getNotifications();
-    const now = new Date();
+    const now = customNow || ClockService.getSimulatedTime();
 
     let newlyOverdue = 0;
     let newlyEscalated = 0;

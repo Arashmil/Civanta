@@ -14,7 +14,10 @@ import {
   DEMO_USERS,
   INITIAL_ACTION_HISTORY,
   INITIAL_NOTIFICATIONS,
-  DEFAULT_SLA_RULES
+  DEFAULT_SLA_RULES,
+  generateCalibratedComplaints,
+  generateCalibratedActionHistory,
+  generateCalibratedNotifications
 } from '../data/initialData';
 
 const STORAGE_KEYS = {
@@ -33,13 +36,33 @@ export class StorageService {
   static getComplaints(): Complaint[] {
     const data = localStorage.getItem(STORAGE_KEYS.COMPLAINTS);
     if (!data) {
-      this.saveComplaints(INITIAL_COMPLAINTS);
-      return INITIAL_COMPLAINTS;
+      const fresh = generateCalibratedComplaints();
+      this.saveComplaints(fresh);
+      return fresh;
     }
     try {
       const parsed: Complaint[] = JSON.parse(data);
       // Purge old simulated demo cases (CIV-2026-BLR-*) to keep only real Karnataka police cases and user complaints
       const cleaned = parsed.filter(c => !c.id.startsWith('CIV-2026-BLR-'));
+
+      // Check if cached demo complaints have obsolete/frozen timestamps from earlier iterations
+      const hasObsoleteDates = cleaned.some(c =>
+        c.createdAt && (
+          c.createdAt.startsWith('2026-02-14') ||
+          c.createdAt.startsWith('2026-03-02') ||
+          c.createdAt.startsWith('2025-10') ||
+          c.createdAt.startsWith('2019-06')
+        )
+      );
+
+      if (hasObsoleteDates) {
+        const freshDemo = generateCalibratedComplaints();
+        const userCustom = cleaned.filter(c => !c.id.startsWith('KSP-') && !c.id.startsWith('LOK-'));
+        const refreshed = [...freshDemo, ...userCustom];
+        this.saveComplaints(refreshed);
+        return refreshed;
+      }
+
       const existingIds = new Set(cleaned.map(c => c.id));
       const missing = INITIAL_COMPLAINTS.filter(c => !existingIds.has(c.id));
       const finalComplaints = [...missing, ...cleaned];
@@ -49,7 +72,8 @@ export class StorageService {
       }
       return finalComplaints;
     } catch {
-      return INITIAL_COMPLAINTS;
+      const fresh = generateCalibratedComplaints();
+      return fresh;
     }
   }
 
@@ -111,19 +135,24 @@ export class StorageService {
   static getActionHistory(): ActionHistoryEntry[] {
     const data = localStorage.getItem(STORAGE_KEYS.ACTION_HISTORY);
     if (!data) {
-      this.saveActionHistory(INITIAL_ACTION_HISTORY);
-      return INITIAL_ACTION_HISTORY;
+      const fresh = generateCalibratedActionHistory();
+      this.saveActionHistory(fresh);
+      return fresh;
     }
     try {
       const parsed: ActionHistoryEntry[] = JSON.parse(data);
-      // If cached history still references old simulated demo IDs, refresh with real-world case audit chain
-      if (parsed.some(e => e.complaintId.startsWith('CIV-2026-BLR-'))) {
-        this.saveActionHistory(INITIAL_ACTION_HISTORY);
-        return INITIAL_ACTION_HISTORY;
+      // If cached history still references old simulated demo IDs or obsolete dates, refresh with real-world case audit chain
+      if (
+        parsed.some(e => e.complaintId.startsWith('CIV-2026-BLR-')) ||
+        parsed.some(e => e.timestamp && (e.timestamp.startsWith('2026-02-14') || e.timestamp.startsWith('2019-06')))
+      ) {
+        const fresh = generateCalibratedActionHistory();
+        this.saveActionHistory(fresh);
+        return fresh;
       }
       return parsed;
     } catch {
-      return INITIAL_ACTION_HISTORY;
+      return generateCalibratedActionHistory();
     }
   }
 
@@ -134,19 +163,24 @@ export class StorageService {
   static getNotifications(): AppNotification[] {
     const data = localStorage.getItem(STORAGE_KEYS.NOTIFICATIONS);
     if (!data) {
-      this.saveNotifications(INITIAL_NOTIFICATIONS);
-      return INITIAL_NOTIFICATIONS;
+      const fresh = generateCalibratedNotifications();
+      this.saveNotifications(fresh);
+      return fresh;
     }
     try {
       const parsed: AppNotification[] = JSON.parse(data);
-      // If cached notifications reference old demo cases, update to real-world police cases
-      if (parsed.some(n => n.complaintId && n.complaintId.startsWith('CIV-2026-BLR-'))) {
-        this.saveNotifications(INITIAL_NOTIFICATIONS);
-        return INITIAL_NOTIFICATIONS;
+      // If cached notifications reference old demo cases or obsolete dates, update to real-world police cases
+      if (
+        parsed.some(n => n.complaintId && n.complaintId.startsWith('CIV-2026-BLR-')) ||
+        parsed.some(n => n.createdAt && (n.createdAt.startsWith('2026-02-15') || n.createdAt.startsWith('2026-03-04')))
+      ) {
+        const fresh = generateCalibratedNotifications();
+        this.saveNotifications(fresh);
+        return fresh;
       }
       return parsed;
     } catch {
-      return INITIAL_NOTIFICATIONS;
+      return generateCalibratedNotifications();
     }
   }
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Clock, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { ClockService } from '../../services/clockService';
 
 interface SLACountdownProps {
   dueDate?: string;
@@ -21,13 +22,18 @@ export const SLACountdown: React.FC<SLACountdownProps> = ({
 
     const calculateDiff = () => {
       const target = new Date(dueDate).getTime();
-      const now = Date.now();
+      const now = ClockService.getSimulatedTime().getTime();
       setTimeDiff(target - now);
     };
 
     calculateDiff();
     const interval = setInterval(calculateDiff, 1000);
-    return () => clearInterval(interval);
+    window.addEventListener('civanta-clock-change', calculateDiff);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('civanta-clock-change', calculateDiff);
+    };
   }, [dueDate, isResolved]);
 
   if (isResolved) {
