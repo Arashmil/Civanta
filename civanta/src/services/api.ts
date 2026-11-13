@@ -5,6 +5,14 @@ import { fallbackChatService } from './fallbackChatService';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
 
+let isBackendOffline = false;
+let lastOfflineCheck = 0;
+const OFFLINE_RETRY_INTERVAL_MS = 30000;
+
+export function isOfflineMode(): boolean {
+  return isBackendOffline;
+}
+
 export function getAuthToken(): string | null {
   return localStorage.getItem('civanta_auth_token');
 }
@@ -18,6 +26,11 @@ export function setAuthToken(token: string | null) {
 }
 
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  // If backend is detected offline, avoid repeatedly hammering the dev proxy
+  if (isBackendOffline && Date.now() - lastOfflineCheck < OFFLINE_RETRY_INTERVAL_MS) {
+    throw new Error('Backend offline: Operating in autonomous client-side mode');
+  }
+
   const token = getAuthToken();
   const headers = new Headers(options.headers || {});
 
@@ -30,10 +43,23 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     headers.set('Content-Type', 'application/json');
   }
 
-  const res = await fetch(`${API_BASE}${endpoint}`, {
-    ...options,
-    headers,
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}${endpoint}`, {
+      ...options,
+      headers,
+    });
+  } catch (netErr: any) {
+    isBackendOffline = true;
+    lastOfflineCheck = Date.now();
+    throw new Error(`Backend offline: ${netErr.message}`);
+  }
+
+  if (res.status === 503) {
+    isBackendOffline = true;
+    lastOfflineCheck = Date.now();
+    throw new Error('Backend offline');
+  }
 
   if (!res.ok) {
     let errorDetail = `Request failed with status ${res.status}`;
@@ -45,6 +71,9 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     }
     throw new Error(errorDetail);
   }
+
+  // Request succeeded: backend is online
+  isBackendOffline = false;
 
   // Return json or text
   const contentType = res.headers.get('content-type');
